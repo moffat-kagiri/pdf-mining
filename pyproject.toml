@@ -3,7 +3,7 @@ requires = ["setuptools>=42", "wheel", "Cython"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "name-unrelated"
+name = "pdf-mining"
 version = "0.1.0"
 description = "Document processing and analysis pipeline"
 dependencies = [
@@ -31,7 +31,20 @@ dependencies = [
     "pandas>=2.0.0",
     "openpyxl>=3.1.0",
     "xlsxwriter>=3.1.0",
-    "numpy>=1.24.0"
+    "numpy>=1.24.0",
+
+    # Web Framework
+    "Flask",
+    "Flask-Cors",
+    "Flask-RESTful",
+    "Flask-SocketIO",
+    "Flask-Session",
+    "Flask-Login",
+    "Flask-Mail",
+
+    # WebSocket
+    "websocket-client",
+    "websockets"
 ]
 
 [project.optional-dependencies]
