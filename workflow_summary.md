@@ -55,7 +55,8 @@ configs/*.yaml files define OCR, layout, and stamp detection settings.
 
 # End-to-End Flow
 
-```graph TD
+```mermaid
+graph TD
     A[User runs CLI] --> B[Preprocess PDF]
     B --> C{Is PDF scanned?}
     C -->|Yes| D[Convert to images]
@@ -69,6 +70,8 @@ configs/*.yaml files define OCR, layout, and stamp detection settings.
     I --> K[Save stamps as images]
     J --> L[Generate Excel]
     K --> L
+
+
 ```
 
 # Key Interactions
