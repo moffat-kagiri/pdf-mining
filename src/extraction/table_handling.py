@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from extraction.text_extraction import extract_text
 
-def reconstruct_table(table_image: np.ndarray) -> pd.DataFrame:
+def reconstruct_table(table_image: np.ndarray, config) -> pd.DataFrame:
     """Convert table image to DataFrame using OCR and heuristics."""
     text = extract_text(table_image)
     if text is None:
