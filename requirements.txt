@@ -1,6 +1,6 @@
 # Core ML/Vision Dependencies
-torch==2.1.0+cpu
-torchvision==0.16.0+cpu
+torch
+torchvision
 opencv-python-headless==4.8.0.74
 Pillow>=10.0.0
 
@@ -44,3 +44,9 @@ multiprocessing
 # WebSocket
 websocket-client
 websockets
+
+# Testing
+pytest
+pytest-cov
+pytest-mock
+pytest-asyncio
