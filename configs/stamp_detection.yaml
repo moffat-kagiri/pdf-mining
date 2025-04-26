@@ -1,0 +1,5 @@
+# YOLO stamp model hyperparameters
+yolov5:
+  weights: "models/stamps/best.pt"
+  img_size: 640
+  confidence: 0.5
