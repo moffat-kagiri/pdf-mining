@@ -17,7 +17,7 @@ except ImportError as e:
     logger.warning(f"LayoutParser import failed: {e}")
     LAYOUT_PARSER_AVAILABLE = False
 
-def detect_layout_elements(image: np.ndarray) -> List[Any]:
+def detect_layout_elements(image: np.ndarray, config) -> List[Any]:
     """Identify headings, paragraphs, tables using LayoutParser."""
     if not LAYOUT_PARSER_AVAILABLE:
         logger.error("LayoutParser not available")
