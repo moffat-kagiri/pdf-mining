@@ -1,0 +1,46 @@
+# Core ML/Vision Dependencies
+torch==2.1.0+cpu
+torchvision==0.16.0+cpu
+opencv-python-headless==4.8.0.74
+Pillow>=10.0.0
+
+# PDF Processing
+PyPDF2>=3.0.0
+pdf2image==1.16.3
+pdfplumber==0.10.3
+PyYAML>=6.0
+
+# OCR Tools
+pytesseract==0.3.10
+easyocr>=1.7.0
+
+# Layout Analysis
+layoutparser>=0.3.4
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+openpyxl
+XlsxWriter
+
+# Annotation
+label_studio_sdk
+yolov5
+ow
+
+# Web Framework
+Flask
+Flask-Cors
+Flask-RESTful
+Flask-SocketIO
+Flask-Session
+Flask-Login
+Flask-Mail
+typing
+
+# Multiple Processing
+multiprocessing
+
+# WebSocket
+websocket-client
+websockets
