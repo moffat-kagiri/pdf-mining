@@ -1,0 +1,37 @@
+Metadata-Version: 2.4
+Name: pdf-mining
+Version: 0.1.0
+Summary: Document processing and analysis pipeline
+License-File: LICENSE
+Requires-Dist: PyPDF2>=3.0.0
+Requires-Dist: pdf2image>=1.16.0
+Requires-Dist: pdfplumber>=0.10.0
+Requires-Dist: PyYAML>=6.0
+Requires-Dist: opencv-python>=4.8.0
+Requires-Dist: Pillow>=10.0.0
+Requires-Dist: pytesseract>=0.3.10
+Requires-Dist: easyocr>=1.7.0
+Requires-Dist: layoutparser[layoutmodels]>=0.3.4
+Requires-Dist: torch>=2.0.0
+Requires-Dist: torchvision>=0.15.0
+Requires-Dist: tenacity
+Requires-Dist: pandas>=2.0.0
+Requires-Dist: openpyxl>=3.1.0
+Requires-Dist: xlsxwriter>=3.1.0
+Requires-Dist: numpy>=1.24.0
+Requires-Dist: Flask
+Requires-Dist: Flask-Cors
+Requires-Dist: Flask-RESTful
+Requires-Dist: Flask-SocketIO
+Requires-Dist: Flask-Session
+Requires-Dist: Flask-Login
+Requires-Dist: Flask-Mail
+Requires-Dist: websocket-client
+Requires-Dist: websockets
+Provides-Extra: dev
+Requires-Dist: mypy>=1.5.0; extra == "dev"
+Requires-Dist: pytest>=7.4.0; extra == "dev"
+Requires-Dist: black>=23.7.0; extra == "dev"
+Requires-Dist: isort>=5.12.0; extra == "dev"
+Requires-Dist: flake8>=6.1.0; extra == "dev"
+Dynamic: license-file
