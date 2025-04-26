@@ -7,11 +7,11 @@ from glob import glob
 from pipeline.batch_processor import process_batch
 from utils.config_loader import load_config
 from preprocessing.pdf_to_image import convert_pdf_to_images
-from preprocessing.image_enhancement import enhance_images
-from extraction.layout_analysis import detect_layout
+from preprocessing.image_enhancement import enhance_image
+from extraction.layout_analysis import detect_layout_elements
 from extraction.text_extraction import extract_text
-from extraction.table_handling import reconstruct_tables
-from postprocessing.text_cleaner import clean_text
+from extraction.table_handling import reconstruct_table
+from postprocessing.text_cleaner import TextCleaner
 from postprocessing.structure_data import structure_table
 
 # Initialize logger
@@ -45,17 +45,17 @@ def main():
 
         # Step 1: Preprocessing
         images = convert_pdf_to_images(pdf_path, config)
-        enhanced_images = enhance_images(images, config)
+        enhanced_images = [enhance_image(image, config) for image in images]  # Process each image
 
         # Step 2: Layout Analysis
-        layout_elements = detect_layout(enhanced_images, config)
+        layout_elements = detect_layout_elements(enhanced_images, config)
 
         # Step 3: Data Extraction
         text_data = extract_text(layout_elements, config)
-        table_data = reconstruct_tables(layout_elements, config)
+        table_data = reconstruct_table(layout_elements, config)
 
         # Step 4: Postprocessing
-        cleaned_text = clean_text(text_data, config)
+        cleaned_text = TextCleaner.clean_text(text_data)
         structured_table = structure_table(table_data)
 
         # Step 5: Save Output
