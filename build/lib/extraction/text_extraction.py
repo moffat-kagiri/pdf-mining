@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 import pytesseract
 import logging
-from ..utils.config_loader import load_ocr_config
+from utils.config_loader import load_ocr_config
 
 def extract_text(image: np.ndarray, engine: str = "tesseract") -> Optional[str]:
     """
