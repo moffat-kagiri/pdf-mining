@@ -14,6 +14,9 @@ from extraction.table_handling import reconstruct_table
 from postprocessing.text_cleaner import TextCleaner
 from postprocessing.structure_data import structure_table
 
+# Set environment variable for PyTorch
+os.environ["TORCH_HOME"] = r"C:\Users\MOFFAT KAGIRI\.torch"
+
 # Initialize logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

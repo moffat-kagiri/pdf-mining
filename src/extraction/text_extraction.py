@@ -35,3 +35,7 @@ def extract_text(image: np.ndarray, engine: str = "tesseract") -> Optional[str]:
     except Exception as e:
         logging.error(f"Unexpected error during text extraction: {str(e)}")
         return ""
+
+# First define your layout_elements variable containing the image data
+layout_elements = None  # Replace with your image data
+text_data = extract_text(layout_elements)
