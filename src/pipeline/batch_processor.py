@@ -1,27 +1,35 @@
-import os
-from multiprocessing import Pool
+import pandas as pd
 from tqdm import tqdm
+from ..utils import logger
+from ..preprocessing import pdf_to_image
+from ..extraction import layout_analysis, text_extraction
 
-# Define the processing function at the top level
-def process_pdf(pdf_path_output):
-    pdf_path, output_dir = pdf_path_output
-    # Your PDF processing logic here
-    # For example:
-    print(f"Processing {pdf_path} into {output_dir}")
-    # Simulate processing
-    return f"Processed {pdf_path}"
+def process_single_pdf(pdf_path):
+    try:
+        # Step 1: Convert PDF
+        images = pdf_to_image.convert_pdf_to_images(pdf_path)
+        
+        # Step 2: Analyze Layout
+        parser_type, layout_data = layout_analysis.analyze_pdf(pdf_path)
+        
+        # Step 3: Extract Content
+        results = []
+        for i, (img, layout) in enumerate(zip(images, layout_data)):
+            if parser_type == "pymupdf":
+                results.extend(process_pymupdf_output(layout))
+            else:
+                results.extend(process_donut_output(img, layout))
+                
+        return pd.DataFrame(results)
+    
+    except Exception as e:
+        logger.error(f"Failed {pdf_path}: {str(e)}")
+        return pd.DataFrame()
 
-def process_batch(pdf_paths, output_dir, workers):
-    # Prepare arguments for the worker function
-    pdf_path_output_pairs = [(pdf_path, output_dir) for pdf_path in pdf_paths]
-
-    # Use multiprocessing with a top-level function
-    with Pool(workers) as pool:
-        results = list(tqdm(
-            pool.imap(process_pdf, pdf_path_output_pairs),
-            total=len(pdf_path_output_pairs),
-            desc="Processing PDFs"
-        ))
-
-    print("Batch processing complete.")
-    return results
+def process_batch(pdf_paths, output_dir, workers=1):
+    dfs = []
+    for path in tqdm(pdf_paths):
+        dfs.append(process_single_pdf(path))
+    
+    final_df = pd.concat(dfs)
+    final_df.to_excel(os.path.join(output_dir, "output.xlsx"), index=False)
