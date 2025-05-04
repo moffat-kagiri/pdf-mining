@@ -1,5 +1,6 @@
 cli
 extraction
+pipeline
 postprocessing
 preprocessing
 utils

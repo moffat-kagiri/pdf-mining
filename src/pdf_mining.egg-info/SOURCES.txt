@@ -10,6 +10,8 @@ src/pdf_mining.egg-info/SOURCES.txt
 src/pdf_mining.egg-info/dependency_links.txt
 src/pdf_mining.egg-info/requires.txt
 src/pdf_mining.egg-info/top_level.txt
+src/pipeline/__init__.py
+src/pipeline/batch_processor.py
 src/postprocessing/__init__.py
 src/postprocessing/structure_data.py
 src/postprocessing/text_cleaner.py

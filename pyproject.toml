@@ -9,29 +9,41 @@ description = "Document processing and analysis pipeline"
 dependencies = [
     # PDF Processing
     "PyPDF2>=3.0.0",
-    "pdf2image>=1.16.0",
+    "pdf2image==1.16.3",
     "pdfplumber>=0.10.0",
     "PyYAML>=6.0",
 
-    # Image Handling
-    "opencv-python>=4.8.0",
-    "Pillow>=10.0.0",
+    # Image Handling & Computer Vision
+    "opencv-python==4.8.1",
+    "Pillow==9.5.0",
+    "scikit-image==0.19.3",
 
     # OCR
-    "pytesseract>=0.3.10",
+    "pytesseract==0.3.10",
     "easyocr>=1.7.0",
 
-    # Layout Analysis & Vision
-    "layoutparser[layoutmodels]>=0.3.4",
-    "torch>=2.0.0",
-    "torchvision>=0.15.0",
-    "tenacity",
+    # Machine Learning & Deep Learning
+    "torch==1.13.1+cpu",
+    "torchvision==0.14.1+cpu",
+    "detectron2==0.6",
+    "scikit-learn==1.2.2",
 
-    # Data Processing
-    "pandas>=2.0.0",
+    # Data Processing & Analysis
+    "pandas==2.0.3",
+    "pnumpy",
+    "numpy>=1.24.0",
     "openpyxl>=3.1.0",
     "xlsxwriter>=3.1.0",
-    "numpy>=1.24.0",
+
+    # Visualization
+    "matplotlib==3.7.1",
+    "seaborn==0.12.2",
+    "plotly==5.15.0",
+    "plotly_express==0.4.1",
+    "plotly_resampler==0.10.1",
+
+    # Utils
+    "tqdm==4.65.0",
 
     # Web Framework
     "Flask",
