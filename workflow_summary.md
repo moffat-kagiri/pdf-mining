@@ -57,20 +57,13 @@ configs/*.yaml files define OCR, layout, and stamp detection settings.
 
 ```mermaid
 graph TD
-    A[User runs CLI] --> B[Preprocess PDF]
-    B --> C{Is PDF scanned?}
-    C -->|Yes| D[Convert to images]
-    C -->|No| E[Extract text directly]
-    D --> F[Enhance images]
-    F --> G[Detect layout]
-    E --> G
-    G --> H[Extract text/table data]
-    G --> I[Detect stamps]
-    H --> J[Clean and structure data]
-    I --> K[Save stamps as images]
-    J --> L[Generate Excel]
-    K --> L
-
+    A[PDF Input] --> B{Is Native PDF?}
+    B -->|Yes| C[PyMuPDF Extract]
+    B -->|No| D[Convert to Images]
+    D --> E[Donut Layout Analysis]
+    C & E --> F[Hybrid OCR]
+    F --> G[Structured Output]
+    G --> H[Excel/CSV]
 
 ```
 
