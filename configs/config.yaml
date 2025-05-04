@@ -1,0 +1,11 @@
+dpi: 300
+temp_dir: "./temp"
+poppler_path: "C:\\Program Files\\poppler\\Library\\bin"
+output_format: "xlsx"
+ocr:
+  engine: "tesseract"
+  lang: "eng"
+  config: "--oem 3 --psm 6"
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(levelname)s - %(message)s"

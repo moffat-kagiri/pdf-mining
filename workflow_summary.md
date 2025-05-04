@@ -84,6 +84,36 @@ batch_processor.py orchestrates parallel execution using multiprocessing.Pool, c
 
 retry.py wraps unstable operations (e.g., OCR) with exponential backoff.
 
+# Structure
+
+pdf-mining/
+├── configs/
+│   ├── layout.yaml       # Donut model config
+│   └── ocr.yaml         # Tesseract/EasyOCR settings
+│
+├── src/
+│   ├── preprocessing/
+│   │   ├── pdf_to_image.py   # Now with Poppler auto-check
+│   │   └── image_tools.py    # Replaces image_enhancement.py
+│   │
+│   ├── extraction/
+│   │   ├── layout_analysis.py  # Uses Donut/PyMuPDF
+│   │   ├── text_extraction.py  # Hybrid OCR
+│   │   └── table_handling.py   # PyMuPDF tables
+│   │
+│   ├── postprocessing/
+│   │   ├── text_cleaner.py     # Unchanged
+│   │   └── structure_data.py   # Now handles PyMuPDF output
+│   │
+│   └── pipeline/               # Simplified batch processing
+│       └── batch_processor.py
+│
+├── scripts/
+│   ├── install_poppler.ps1     # Windows Poppler installer
+│   └── setup_tesseract.ps1     # Tesseract config
+│
+└── requirements.txt
+
 # Configuration
 
 Settings from configs/ are loaded by config_loader.py and injected into layout/OCR modules.

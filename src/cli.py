@@ -29,14 +29,21 @@ def parse_args():
 def main():
     args = parse_args()
     
-    # Setup logging
+    # Setup logging first
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=log_level, 
                        format='%(asctime)s - %(levelname)s - %(message)s')
 
-    # Load configuration
-    config = load_config(args.config)
-    logging.info(f"Loaded configuration from {args.config}")
+    # Load configuration with proper error handling
+    try:
+        config = load_config(args.config)
+        if args.config:
+            logging.info(f"Loaded configuration from {args.config}")
+        else:
+            logging.info("Using default configuration")
+    except Exception as e:
+        logging.error(f"Error loading configuration: {str(e)}")
+        return
 
     # Resolve input paths
     if os.path.isdir(args.input):

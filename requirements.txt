@@ -1,52 +1,27 @@
-# Core ML/Vision Dependencies
-torch
-torchvision
-opencv-python-headless==4.8.0.74
-Pillow>=10.0.0
+# Core PDF Processing
+pymupdf==1.23.25  # Lightweight PDF text/tables
+pdf2image==1.17.0  # Scanned PDFs
+poppler-utils==0.68.0  # Required for pdf2image (will use chocolatey install)
 
-# PDF Processing
-PyPDF2>=3.0.0
-pdf2image==1.16.3
-pdfplumber==0.10.3
-PyYAML>=6.0
+# Layout Analysis (Donut replaces Detectron2)
+layoutparser==0.3.4  # With Donut model
+transformers==4.41.2  # For Donut
 
-# OCR Tools
+# OCR
 pytesseract==0.3.10
-easyocr>=1.7.0
+easyocr==1.7.1  # Fallback
+tesseract-ocr==5.3.3  # Windows executable (via chocolatey)
 
-# Layout Analysis
-layoutparser>=0.3.4
+# Image Processing
+opencv-python-headless==4.9.0.80  # Lighter than full OpenCV
+Pillow==10.3.0  # Image handling
 
-# Data Processing
-pandas>=2.0.0
-numpy>=1.24.0
-openpyxl
-XlsxWriter
+# Utilities
+numpy==1.26.4  # Latest stable before v2
+pandas==2.2.2  # Data structuring
+tqdm==4.66.2  # Progress bars
+python-dotenv==1.0.1  # Path management
 
-# Annotation
-label_studio_sdk
-yolov5
-ow
-
-# Web Framework
-Flask
-Flask-Cors
-Flask-RESTful
-Flask-SocketIO
-Flask-Session
-Flask-Login
-Flask-Mail
-typing
-
-# Multiple Processing
-multiprocessing
-
-# WebSocket
-websocket-client
-websockets
-
-# Testing
-pytest
-pytest-cov
-pytest-mock
-pytest-asyncio
+# Error Handling
+tenacity==8.2.3  # Retries
+loguru==0.7.2  # Simplified logging

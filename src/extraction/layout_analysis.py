@@ -17,36 +17,20 @@ except ImportError as e:
     logger.warning(f"LayoutParser import failed: {e}")
     LAYOUT_PARSER_AVAILABLE = False
 
-def detect_layout_elements(image: np.ndarray, config) -> List[Any]:
-    """Identify headings, paragraphs, tables using LayoutParser."""
-    if not LAYOUT_PARSER_AVAILABLE:
-        logger.error("LayoutParser not available")
-        return []
-
+def detect_layout_elements(images, config):
     try:
-        # Convert numpy array to PIL Image if needed
-        if isinstance(image, np.ndarray):
-            pil_image = Image.fromarray(image)
-        else:
-            pil_image = image
-        image = np.array(pil_image)
-
-        # Initialize with pre-trained PubLayNet model for CPU
         model = lp.Detectron2LayoutModel(
-            config_path="lp://PubLayNet/faster_rcnn_R_50_FPN_3x/config",
-            label_map={
-                0: "Text",
-                1: "Title", 
-                2: "List",
-                3: "Table",
-                4: "Figure"
-            },
-            extra_config=["MODEL.DEVICE", "cpu"]
+            config_path="detectron2_configs/layout.yaml",
+            label_map={0: "Text", 1: "Title", 2: "Table", 3: "Figure"}
         )
-        
-        layout = model.detect(image)
-        return sorted(layout, key=lambda x: x.coordinates[1])
-        
+        layout_elements = []
+        for image in images:
+            layout = model.detect(image)
+            layout_elements.append(layout)
+        return layout_elements
+    except ImportError as e:
+        logging.error(f"Layout detection failed: {str(e)}")
+        return []
     except Exception as e:
-        logger.error(f"Layout detection failed: {str(e)}")
+        logging.error(f"Layout detection error: {str(e)}")
         return []
