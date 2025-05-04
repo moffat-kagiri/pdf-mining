@@ -1,7 +1,7 @@
 # Core PDF Processing
 pymupdf==1.23.25  # Lightweight PDF text/tables
 pdf2image==1.17.0  # Scanned PDFs
-poppler-utils==0.68.0  # Required for pdf2image (will use chocolatey install)
+#poppler-utils==0.68.0  # Required for pdf2image (will use chocolatey install)
 
 # Layout Analysis (Donut replaces Detectron2)
 layoutparser==0.3.4  # With Donut model
