@@ -7,7 +7,7 @@ from glob import glob
 from pipeline.batch_processor import process_batch
 from utils.config_loader import load_config
 from preprocessing.pdf_to_image import convert_pdf_to_images
-from preprocessing.image_enhancement import enhance_image
+from preprocessing.image_tools import enhance_image
 from extraction.layout_analysis import detect_layout_elements
 from extraction.text_extraction import extract_text
 from extraction.table_handling import reconstruct_table
