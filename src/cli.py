@@ -17,21 +17,26 @@ from postprocessing.structure_data import structure_table
 # Set environment variable for PyTorch
 os.environ["TORCH_HOME"] = r"C:\Users\MOFFAT KAGIRI\.torch"
 
-# Initialize logger
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+def parse_args():
+    parser = argparse.ArgumentParser(description='PDF Mining Tool')
+    parser.add_argument('--input', required=True, help='Input PDF file or directory')
+    parser.add_argument('--output', default='./data/processed', help='Output directory')
+    parser.add_argument('--config', help='Path to config file')
+    parser.add_argument('--workers', type=int, default=1, help='Number of worker processes')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
+    return parser.parse_args()
 
 def main():
-    parser = argparse.ArgumentParser(description="Batch PDF Processor")
-    parser.add_argument("--input", required=True, help="PDF files or directory")
-    parser.add_argument("--output", default="./output", help="Output directory")
-    parser.add_argument("--config", default="./configs/default.yaml", help="Path to config file")
-    parser.add_argument("--workers", type=int, default=4, help="Number of parallel processes")
-    args = parser.parse_args()
+    args = parse_args()
+    
+    # Setup logging
+    log_level = logging.DEBUG if args.verbose else logging.INFO
+    logging.basicConfig(level=log_level, 
+                       format='%(asctime)s - %(levelname)s - %(message)s')
 
     # Load configuration
     config = load_config(args.config)
-    logger.info(f"Loaded configuration from {args.config}")
+    logging.info(f"Loaded configuration from {args.config}")
 
     # Resolve input paths
     if os.path.isdir(args.input):
@@ -44,7 +49,7 @@ def main():
 
     # Process each PDF
     for pdf_path in pdf_paths:
-        logger.info(f"Processing {pdf_path}")
+        logging.info(f"Processing {pdf_path}")
 
         # Step 1: Preprocessing
         images = convert_pdf_to_images(pdf_path, config)
@@ -64,9 +69,9 @@ def main():
         # Step 5: Save Output
         output_file = os.path.join(args.output, f"{Path(pdf_path).stem}.xlsx")
         structured_table.to_excel(output_file, index=False)
-        logger.info(f"Saved structured data to {output_file}")
+        logging.info(f"Saved structured data to {output_file}")
 
-    logger.info("Batch processing complete.")
+    logging.info("Batch processing complete.")
 
 if __name__ == "__main__":
     main()
