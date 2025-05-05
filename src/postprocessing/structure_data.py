@@ -2,25 +2,20 @@
 import pandas as pd
 from typing import List, Dict
 
-def structure_table(layout_elements: List[Dict]) -> pd.DataFrame:
-    """
-    Convert layout elements to structured DataFrame
-    Args:
-        layout_elements: List of dicts from layout analysis
-    Returns:
-        pd.DataFrame: Structured table with columns ['type', 'content', 'bbox']
-    """
-    structured_data = []
-    
-    for element in layout_elements:
-        structured_data.append({
+def structure_table(elements):
+    structured = []
+    for element in elements:
+        # Skip non-dict elements
+        if not isinstance(element, dict):
+            continue
+            
+        structured.append({
             'type': element.get('type', 'unknown'),
-            'content': element.get('text', '') or element.get('content', ''),
+            'content': element.get('text', ''),
             'bbox': element.get('bbox', []),
             'source': element.get('source', 'unknown')
         })
-    
-    return pd.DataFrame(structured_data)
+    return pd.DataFrame(structured)
 
 # Explicit exports
 __all__ = ['structure_table']

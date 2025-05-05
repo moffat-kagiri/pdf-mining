@@ -1,39 +1,34 @@
 # src/extraction/layout_analysis.py
 from tkinter import Image
 import layoutparser as lp
+import logging
 import pymupdf
 import numpy as np
 import cv2
 from ..utils.config_loader import config
 from ..preprocessing.pdf_to_image import convert_pdf_to_images
 
-def detect_layout_elements(pdf_path, config=None):
-    """
-    Args:
-        pdf_path: Path to PDF file
-        config: Optional configuration dictionary
-    Returns:
-        List of layout elements (text blocks, tables, etc.)
-    """
-    if config is None:
-        from ..utils.config_loader import config as default_config
-        config = default_config
-        images = convert_pdf_to_images(pdf_path)
-        return [Image.fromarray(img) for img in images]  # Ensure PIL Image format
+logger = logging.getLogger(__name__)
 
-    # Rest of your existing implementation
-    try:
-        with pymupdf.open(pdf_path) as doc:
-            if any(page.get_text("dict") for page in doc):
-                return _process_pymupdf_layout(doc)
-    except Exception as e:
-        print(f"PyMuPDF failed: {e}")
+
+def detect_layout_elements(image):
+    elements = []
     
+    # Example PyMuPDF processing
     try:
-        return _process_donut_layout(pdf_path)
+        # Convert image to PDF-like structure
+        layout = {
+            'type': 'text',
+            'bbox': [0, 0, image.width, image.height],
+            'content': '',
+            'image': image  # Keep original image for OCR
+        }
+        elements.append(layout)
+        
     except Exception as e:
-        print(f"Donut failed: {e}")
-        return []
+        logger.error(f"Layout analysis failed: {str(e)}")
+    
+    return elements
 
 def _process_pymupdf_layout(doc):
     """Process native PDF layout using PyMuPDF"""

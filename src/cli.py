@@ -17,6 +17,31 @@ from src.postprocessing.structure_data import structure_table
 # Set environment variable for PyTorch
 os.environ["TORCH_HOME"] = r"C:\Users\MOFFAT KAGIRI\.torch"
 
+def process_pdf(pdf_path, config):
+    try:
+        # Convert PDF to images
+        images = convert_pdf_to_images(pdf_path)
+        if not images:
+            raise ValueError("No images extracted from PDF")
+
+        # Process each page individually
+        all_results = []
+        for img in images:
+            # Get layout elements for this page
+            layout_elements = detect_layout_elements(img)  # Pass single image
+            
+            # Extract text from each element
+            for element in layout_elements:
+                if 'image' in element:  # For image regions
+                    text_data = extract_text(element['image'])
+                    element['text'] = text_data
+                all_results.append(element)
+                
+        return all_results
+        
+    except Exception as e:
+        logger.error(f"Failed to process {pdf_path}: {str(e)}")
+        return []
 def parse_args():
     parser = argparse.ArgumentParser(description='PDF Mining Tool')
     parser.add_argument('--input', required=True, help='Input PDF file or directory')
