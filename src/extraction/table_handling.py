@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
-from extraction.text_extraction import extract_text
+from src.extraction.text_extraction import extract_text
 
 def reconstruct_table(table_image: np.ndarray, config) -> pd.DataFrame:
     """Convert table image to DataFrame using OCR and heuristics."""

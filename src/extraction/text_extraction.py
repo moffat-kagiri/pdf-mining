@@ -25,3 +25,12 @@ def extract_text(image, engine="auto"):
             return "easyocr", " ".join([res[1] for res in results])
         except:
             return "failed", ""
+        
+_reader = None
+
+def get_easyocr_reader():
+    global _reader
+    if _reader is None:
+        import easyocr
+        _reader = easyocr.Reader(['en'])
+    return _reader

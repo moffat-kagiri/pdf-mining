@@ -1,48 +1,32 @@
-from typing import List, Dict, Any
 import pandas as pd
-import logging
-import numpy as np
+from typing import Dict, List
 
-logger = logging.getLogger(__name__)
+def process_pymupdf_output(pymupdf_data: Dict) -> List[Dict]:
+    """Convert PyMuPDF output to standardized format"""
+    results = []
+    for block in pymupdf_data.get("blocks", []):
+        results.append({
+            "type": "text" if block["type"] == 0 else "image",
+            "content": block.get("text", ""),
+            "bbox": block.get("bbox", []),
+            "source": "pymupdf"
+        })
+    return results
 
-def structure_table(layout_elements: List[Any]) -> pd.DataFrame:
-    """
-    Convert detected layout elements into structured tabular format.
-    
-    Args:
-        layout_elements: List of layout elements from LayoutParser
-        
-    Returns:
-        pandas.DataFrame containing structured data with columns for
-        element type, text content, confidence score, and coordinates
-    """
-    try:
-        structured_data = []
-        
-        for element in layout_elements:
-            data = {
-                'type': element.type,
-                'text': element.text if hasattr(element, 'text') else '',
-                'confidence': float(element.score) if hasattr(element, 'score') else 0.0,
-                'x1': element.coordinates[0],
-                'y1': element.coordinates[1],
-                'x2': element.coordinates[2],
-                'y2': element.coordinates[3],
-                'page_number': getattr(element, 'page_number', 1)
-            }
-            structured_data.append(data)
-            
-        df = pd.DataFrame(structured_data)
-        
-        # Sort by vertical position (top to bottom)
-        df = df.sort_values('y1')
-        
-        # Add derived columns
-        df['area'] = (df['x2'] - df['x1']) * (df['y2'] - df['y1'])
-        df['height'] = df['y2'] - df['y1']
-        
-        return df
-        
-    except Exception as e:
-        logger.error(f"Failed to structure layout data: {str(e)}")
-        return pd.DataFrame()  # Return empty DataFrame on error
+def process_donut_output(image, layout) -> List[Dict]:
+    """Convert Donut model output to standardized format"""
+    results = []
+    for block in layout:
+        results.append({
+            "type": block.type,
+            "content": block.text or "",
+            "bbox": block.coordinates,
+            "source": "donut"
+        })
+    return results
+
+def clean_text(text: str) -> str:
+    """Basic text cleaning"""
+    import re
+    text = re.sub(r'\s+', ' ', text)  # Remove extra whitespace
+    return text.strip()

@@ -1,7 +1,10 @@
 import layoutparser as lp
-import pymupdf
+import fitz
+import numpy as np
 import cv2
-from ..utils.config_loader import load_config
+import pymupdf
+from src.utils.config_loader import load_config  # Changed from relative
+from src.preprocessing.pdf_to_image import convert_pdf_to_images  # Changed from relative
 
 config = load_config()
 
@@ -21,3 +24,4 @@ def analyze_pdf(pdf_path):
         return "donut", [model.detect(cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)) for img in images]
     except Exception as e:
         raise RuntimeError(f"Layout analysis failed: {str(e)}")
+                           

@@ -4,7 +4,13 @@ from tqdm import tqdm
 from src.utils import logger
 from src.preprocessing import pdf_to_image
 from src.extraction import layout_analysis, text_extraction
-from src.postprocessing import process_pymupdf_output, process_donut_output
+from src.extraction.table_handling import reconstruct_table
+from src.postprocessing import (
+    process_pymupdf_output, 
+    process_donut_output,
+    clean_text,
+    text_cleaner
+)
 
 def process_single_pdf(pdf_path):
     try:
