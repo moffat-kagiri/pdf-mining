@@ -10,7 +10,7 @@ transformers==4.41.2  # For Donut
 # OCR
 pytesseract==0.3.10
 easyocr==1.7.1  # Fallback
-tesseract-ocr  # Windows executable (via chocolatey)
+#tesseract-ocr  # Windows executable (installed via chocolatey)
 
 # Image Processing
 opencv-python-headless==4.9.0.80  # Lighter than full OpenCV
@@ -19,7 +19,7 @@ pdf2image==1.17.0  # For scanned PDFs
 
 # Utilities
 numpy==1.26.4  # Latest stable before v2
-pandas==2.2.2  # Data structuring
+pandas  # Data structuring
 tqdm==4.66.2  # Progress bars
 python-dotenv==1.0.1  # Path management
 PyYAML==6.0.2  # YAML parsing
