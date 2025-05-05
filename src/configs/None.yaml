@@ -1,0 +1,12 @@
+logging:
+  file: pdf_mining.log
+  level: INFO
+ocr:
+  default_engine: tesseract
+  fallback_engine: easyocr
+  languages:
+  - eng
+paths:
+  output_dir: output
+  poppler_path: C:\Program Files\poppler-25.04.0\Library\bin
+  tesseract_path: C:\Program Files\Tesseract-OCR\tesseract.exe

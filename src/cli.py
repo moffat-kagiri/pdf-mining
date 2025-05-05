@@ -11,7 +11,7 @@ from src.preprocessing.image_tools import enhance_image
 from src.extraction import detect_layout_elements
 from src.extraction.text_extraction import extract_text
 from src.extraction.table_handling import reconstruct_table
-from src.postprocessing.text_cleaner import TextCleaner
+from src.postprocessing.text_cleaner import clean_text, process_donut_output, process_pymupdf_output
 from src.postprocessing.structure_data import structure_table
 
 # Set environment variable for PyTorch
@@ -63,14 +63,14 @@ def main():
         enhanced_images = [enhance_image(image, config) for image in images]  # Process each image
 
         # Step 2: Layout Analysis
-        layout_elements = detect_layout_elements(enhanced_images, config)
+        layout_elements = detect_layout_elements(pdf_path, config)
 
         # Step 3: Data Extraction
         text_data = extract_text(layout_elements, config)
         table_data = reconstruct_table(layout_elements, config)
 
         # Step 4: Postprocessing
-        cleaned_text = TextCleaner.clean_text(text_data)
+        cleaned_text = clean_text(text_data)
         structured_table = structure_table(table_data)
 
         # Step 5: Save Output

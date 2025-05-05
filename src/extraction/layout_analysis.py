@@ -1,16 +1,27 @@
 # src/extraction/layout_analysis.py
+from tkinter import Image
 import layoutparser as lp
 import pymupdf
 import numpy as np
 import cv2
 from ..utils.config_loader import config
+from ..preprocessing.pdf_to_image import convert_pdf_to_images
 
-def detect_layout_elements(pdf_path):
+def detect_layout_elements(pdf_path, config=None):
     """
-    Unified function to detect layout elements from PDFs
-    Returns: List of layout elements (text blocks, tables, etc.)
+    Args:
+        pdf_path: Path to PDF file
+        config: Optional configuration dictionary
+    Returns:
+        List of layout elements (text blocks, tables, etc.)
     """
-    # Try native PDF parsing first
+    if config is None:
+        from ..utils.config_loader import config as default_config
+        config = default_config
+        images = convert_pdf_to_images(pdf_path)
+        return [Image.fromarray(img) for img in images]  # Ensure PIL Image format
+
+    # Rest of your existing implementation
     try:
         with pymupdf.open(pdf_path) as doc:
             if any(page.get_text("dict") for page in doc):
@@ -18,7 +29,6 @@ def detect_layout_elements(pdf_path):
     except Exception as e:
         print(f"PyMuPDF failed: {e}")
     
-    # Fallback to Donut model
     try:
         return _process_donut_layout(pdf_path)
     except Exception as e:
