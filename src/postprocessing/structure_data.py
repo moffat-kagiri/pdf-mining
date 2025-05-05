@@ -1,32 +1,26 @@
+# src/postprocessing/structure_data.py
 import pandas as pd
-from typing import Dict, List
+from typing import List, Dict
 
-def process_pymupdf_output(pymupdf_data: Dict) -> List[Dict]:
-    """Convert PyMuPDF output to standardized format"""
-    results = []
-    for block in pymupdf_data.get("blocks", []):
-        results.append({
-            "type": "text" if block["type"] == 0 else "image",
-            "content": block.get("text", ""),
-            "bbox": block.get("bbox", []),
-            "source": "pymupdf"
+def structure_table(layout_elements: List[Dict]) -> pd.DataFrame:
+    """
+    Convert layout elements to structured DataFrame
+    Args:
+        layout_elements: List of dicts from layout analysis
+    Returns:
+        pd.DataFrame: Structured table with columns ['type', 'content', 'bbox']
+    """
+    structured_data = []
+    
+    for element in layout_elements:
+        structured_data.append({
+            'type': element.get('type', 'unknown'),
+            'content': element.get('text', '') or element.get('content', ''),
+            'bbox': element.get('bbox', []),
+            'source': element.get('source', 'unknown')
         })
-    return results
+    
+    return pd.DataFrame(structured_data)
 
-def process_donut_output(image, layout) -> List[Dict]:
-    """Convert Donut model output to standardized format"""
-    results = []
-    for block in layout:
-        results.append({
-            "type": block.type,
-            "content": block.text or "",
-            "bbox": block.coordinates,
-            "source": "donut"
-        })
-    return results
-
-def clean_text(text: str) -> str:
-    """Basic text cleaning"""
-    import re
-    text = re.sub(r'\s+', ' ', text)  # Remove extra whitespace
-    return text.strip()
+# Explicit exports
+__all__ = ['structure_table']

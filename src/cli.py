@@ -8,7 +8,7 @@ from src.pipeline.batch_processor import process_batch
 from src.utils.config_loader import load_config
 from src.preprocessing.pdf_to_image import convert_pdf_to_images
 from src.preprocessing.image_tools import enhance_image
-from src.extraction.layout_analysis import detect_layout_elements
+from src.extraction import detect_layout_elements
 from src.extraction.text_extraction import extract_text
 from src.extraction.table_handling import reconstruct_table
 from src.postprocessing.text_cleaner import TextCleaner
