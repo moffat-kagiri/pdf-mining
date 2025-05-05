@@ -1,53 +1,47 @@
 import re
-from typing import List
+from typing import List, Dict, Any
 
-class TextCleaner:
-    @staticmethod
-    def clean_text(text: str) -> str:
-        """
-        Clean extracted text by removing unwanted characters and normalizing spacing.
-        
-        Args:
-            text (str): Raw text to clean
-            
-        Returns:
-            str: Cleaned text
-        """
-        # Remove extra whitespace and normalize
-        text = ' '.join(text.split())
-        
-        # Remove special characters but keep basic punctuation
-        text = re.sub(r'[^\w\s.,!?-]', '', text)
-        
-        # Fix spacing around punctuation
-        text = re.sub(r'\s+([.,!?])', r'\1', text)
-        
-        return text.strip()
+def clean_text(text: str) -> str:
+    """Clean extracted text by removing noise and normalizing."""
+    if not text:
+        return ""
     
-    @staticmethod
-    def clean_list(text_list: List[str]) -> List[str]:
-        """
-        Clean a list of text strings.
+    # Basic text cleaning
+    text = text.strip()
+    text = re.sub(r'\s+', ' ', text)  # normalize whitespace
+    text = re.sub(r'[^\x00-\x7F]+', '', text)  # remove non-ASCII
+    return text
+
+def process_pymupdf_output(layout: Dict[str, Any]) -> List[Dict[str, str]]:
+    """Process text blocks from PyMuPDF layout."""
+    results = []
+    if not layout:
+        return results
         
-        Args:
-            text_list (List[str]): List of text strings to clean
-            
-        Returns:
-            List[str]: List of cleaned text strings
-        """
-        return [TextCleaner.clean_text(text) for text in text_list if text.strip()]
-    
-    @staticmethod
-    def remove_empty_lines(text: str) -> str:
-        """
-        Remove empty lines from text.
+    for block in layout.get('blocks', []):
+        text = clean_text(block.get('text', ''))
+        if text:
+            results.append({
+                'text': text,
+                'type': block.get('type', 'unknown'),
+                'bbox': block.get('bbox', []),
+                'confidence': block.get('confidence', 1.0)
+            })
+    return results
+
+def process_donut_output(image, predictions) -> List[Dict[str, str]]:
+    """Process text predictions from Donut model."""
+    results = []
+    if not predictions:
+        return results
         
-        Args:
-            text (str): Text to process
-            
-        Returns:
-            str: Text with empty lines removed
-        """
-        lines = text.splitlines()
-        non_empty_lines = [line for line in lines if line.strip()]
-        return '\n'.join(non_empty_lines)
+    for pred in predictions:
+        text = clean_text(pred.get('text', ''))
+        if text:
+            results.append({
+                'text': text,
+                'type': pred.get('label', 'text'),
+                'bbox': pred.get('box', []),
+                'confidence': pred.get('score', 0.0)
+            })
+    return results
