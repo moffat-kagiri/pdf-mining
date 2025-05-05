@@ -1,8 +1,11 @@
 # src/extraction/text_extraction.py
 import numpy as np
 import cv2
+import pytesseract
+import easyocr
 from PIL import Image
 import logging
+import pytesseract
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +33,11 @@ def extract_text(image, engine="auto"):
             
         # Rest of your OCR logic...
         if engine == "auto":
+            reader = easyocr.Reader(['en'])
             text = pytesseract.image_to_string(cv_img)
             if len(text.strip()) > 10:
                 return text
-            return " ".join([res[1] for res in easyocr_reader.readtext(cv_img)])
+            return " ".join([res[1] for res in reader.readtext(cv_img)])
             
     except Exception as e:
         logger.error(f"Text extraction failed: {str(e)}")
