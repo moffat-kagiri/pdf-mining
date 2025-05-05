@@ -75,7 +75,7 @@ Improve Accuracy: Annotate your PDFs with Label Studio and retrain models.
 Add New Formats: Fork and extend the pipeline for custom documents (e.g., receipts).
 
 ```bash
-python train.py --dataset your_data/ --epochs 20
+python -m src.cli --input "./tests/data/simple.pdf" --output "./tests/out"
 ```
 
 ## License
