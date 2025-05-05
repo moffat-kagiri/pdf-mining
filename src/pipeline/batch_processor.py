@@ -1,8 +1,10 @@
+import os
 import pandas as pd
 from tqdm import tqdm
-from ..utils import logger
-from ..preprocessing import pdf_to_image
-from ..extraction import layout_analysis, text_extraction
+from src.utils import logger
+from src.preprocessing import pdf_to_image
+from src.extraction import layout_analysis, text_extraction
+from src.postprocessing import process_pymupdf_output, process_donut_output
 
 def process_single_pdf(pdf_path):
     try:

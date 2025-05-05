@@ -1,0 +1,31 @@
+# PDF Processing Settings
+pdf:
+  dpi: 300
+  format: 'RGB'
+
+# Image Enhancement
+image:
+  denoise: true
+  contrast: 1.2
+  brightness: 1.0
+
+# Layout Analysis
+layout:
+  model: 'donut'
+  confidence_threshold: 0.5
+
+# OCR Settings
+ocr:
+  engine: 'tesseract'
+  language: 'eng'
+  config: '--oem 3 --psm 6'
+
+# Table Extraction
+table:
+  min_confidence: 0.8
+  structure_type: 'grid'
+
+# Output Settings
+output:
+  format: 'xlsx'
+  include_metadata: true
