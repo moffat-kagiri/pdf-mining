@@ -84,11 +84,24 @@ def main():
         logging.info(f"Processing {pdf_path}")
 
         # Step 1: Preprocessing
-        images = convert_pdf_to_images(pdf_path, config)
-        enhanced_images = [enhance_image(image, config) for image in images]  # Process each image
+        try:
+            images = convert_pdf_to_images(pdf_path, config)
+            if not images:
+                logging.error(f"No images extracted from {pdf_path}")
+                continue
+                
+            enhanced_images = [enhance_image(image, config) for image in images]
+            if not enhanced_images:
+                logging.error(f"Image enhancement failed for {pdf_path}")
+                continue
+                
+            logging.info(f"Successfully processed {len(enhanced_images)} pages from {pdf_path}")
+        except Exception as e:
+            logging.error(f"Failed to process {pdf_path}: {str(e)}")
+            continue
 
         # Step 2: Layout Analysis
-        layout_elements = detect_layout_elements(pdf_path, config)
+        layout_elements = detect_layout_elements(enhanced_images[0], config)  # Pass first image or use pdf_path
 
         # Step 3: Data Extraction
         text_data = extract_text(layout_elements, config)
