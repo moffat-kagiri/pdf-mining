@@ -1,44 +1,66 @@
-# src/extraction/text_extraction.py
-import numpy as np
-import cv2
-import pytesseract
-import easyocr
-from PIL import Image
+import fitz
+from pdf2image import convert_from_path
 import logging
-import pytesseract
+from typing import Optional, List
+import numpy as np
 
-logger = logging.getLogger(__name__)
+class TextExtractor:
+    def __init__(self, config: dict):
+        self.config = config
+        self.logger = logging.getLogger(__name__)
 
-def ensure_cv2_image(image):
-    """Convert any image format to OpenCV-compatible numpy array"""
-    if isinstance(image, np.ndarray):
-        return image
-    try:
-        if isinstance(image, Image.Image):
-            return cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-        elif isinstance(image, str):  # File path
-            return cv2.imread(image)
-        else:
-            raise ValueError(f"Unsupported image type: {type(image)}")
-    except Exception as e:
-        logger.error(f"Image conversion failed: {str(e)}")
-        raise
-
-def extract_text(image, engine="auto"):
-    """Extract text from image with format validation"""
-    try:
-        cv_img = ensure_cv2_image(image)
-        if cv_img is None:
-            raise ValueError("Invalid image input")
+    def extract(self, pdf_path: str) -> Optional[str]:
+        """Main extraction method with fallback logic"""
+        # First attempt direct text extraction
+        direct_text = self._extract_direct_text(pdf_path)
+        if direct_text and self._validate_text(direct_text):
+            return direct_text
             
-        # Rest of your OCR logic...
-        if engine == "auto":
-            reader = easyocr.Reader(['en'])
-            text = pytesseract.image_to_string(cv_img)
-            if len(text.strip()) > 10:
-                return text
-            return " ".join([res[1] for res in reader.readtext(cv_img)])
-            
-    except Exception as e:
-        logger.error(f"Text extraction failed: {str(e)}")
-        return ""
+        # Fallback to image-based OCR
+        return self._extract_via_ocr(pdf_path)
+
+    def _extract_direct_text(self, pdf_path: str) -> Optional[str]:
+        """Direct text extraction using PyMuPDF"""
+        try:
+            text = ""
+            with fitz.open(pdf_path) as doc:
+                for page in doc:
+                    text += page.get_text()
+            return text if text.strip() else None
+        except Exception as e:
+            self.logger.warning(f"Direct text extraction failed: {str(e)}")
+            return None
+
+    def _extract_via_ocr(self, pdf_path: str) -> Optional[str]:
+        """Image-based OCR fallback"""
+        try:
+            images = self._pdf_to_images(pdf_path)
+            if not images:
+                return None
+            return self._run_ocr(images[0])
+        except Exception as e:
+            self.logger.error(f"OCR fallback failed: {str(e)}")
+            return None
+
+    def _pdf_to_images(self, pdf_path: str) -> List[np.ndarray]:
+        """PDF to image conversion"""
+        try:
+            return convert_from_path(
+                pdf_path,
+                poppler_path=self.config.get('poppler_path')
+            )
+        except Exception as e:
+            self.logger.error(f"PDF to image conversion failed: {str(e)}")
+            return []
+
+    def _validate_text(self, text: str) -> bool:
+        """Validate extracted text quality"""
+        return len(text.strip()) > self.config.get('min_text_length', 50)
+
+    def _run_ocr(self, image: np.ndarray) -> str:
+        """Your existing OCR implementation"""
+        # Implement your OCR logic here
+        return "OCR Result Placeholder"
+
+# Explicit exports
+__all__ = ['TextExtractor']

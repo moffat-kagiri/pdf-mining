@@ -4,7 +4,10 @@ import logging
 from typing import List
 from pathlib import Path
 from glob import glob
-from src.pipeline.batch_processor import process_batch
+
+# Configure logger
+logger = logging.getLogger(__name__)
+from src.pipeline.batch_processor import process_pdf  #New Function Name
 from src.utils.config_loader import load_config
 from src.preprocessing.pdf_to_image import convert_pdf_to_images
 from src.preprocessing.image_tools import enhance_image
@@ -44,6 +47,8 @@ def process_pdf(pdf_path, config):
         return []
 def parse_args():
     parser = argparse.ArgumentParser(description='PDF Mining Tool')
+    parser.add_argument('--mode', choices=['auto', 'direct', 'ocr'], default='auto',
+                   help='Extraction mode (direct text or OCR)')
     parser.add_argument('--input', required=True, help='Input PDF file or directory')
     parser.add_argument('--output', default='./data/processed', help='Output directory')
     parser.add_argument('--config', help='Path to config file')

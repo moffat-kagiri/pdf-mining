@@ -3,14 +3,25 @@ import pandas as pd
 from tqdm import tqdm
 from src.utils import logger
 from src.preprocessing import pdf_to_image
-from src.extraction import layout_analysis, text_extraction
+from src.extraction.layout_analysis import analyze_layout
+from src.extraction.text_extraction import TextExtractor
 from src.extraction.table_handling import reconstruct_table
+from src.extraction.layout_analysis import analyze_layout
 from src.postprocessing import (
     process_pymupdf_output, 
     process_donut_output,
     clean_text,
     text_cleaner
 )
+def process_pdf(pdf_path: str, config: dict, mode: str = 'auto'):
+    extractor = TextExtractor(config)
+    
+    if mode == 'auto':
+        text = extractor.extract(pdf_path)
+    elif mode == 'direct':
+        text = extractor._extract_direct_text(pdf_path)
+    elif mode == 'ocr':
+        text = extractor._extract_via_ocr(pdf_path)
 
 def process_single_pdf(pdf_path):
     try:
@@ -33,11 +44,3 @@ def process_single_pdf(pdf_path):
     except Exception as e:
         logger.error(f"Failed {pdf_path}: {str(e)}")
         return pd.DataFrame()
-
-def process_batch(pdf_paths, output_dir, workers=1):
-    dfs = []
-    for path in tqdm(pdf_paths):
-        dfs.append(process_single_pdf(path))
-    
-    final_df = pd.concat(dfs)
-    final_df.to_excel(os.path.join(output_dir, "output.xlsx"), index=False)
