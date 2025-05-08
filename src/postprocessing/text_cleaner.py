@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List
+from typing import Dict, List, Any
 
 class TextCleaner:
     def __init__(self, config: dict):

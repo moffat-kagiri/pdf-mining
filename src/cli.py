@@ -36,20 +36,21 @@ def process_content(text: str) -> Tuple[str, Optional[list]]:
     return clean_text(text), tables
 
 def save_outputs(base_name: str, text: str, tables: list):
-    """Save both text and table outputs"""
-    # Save text
+    """Save outputs with proper formatting"""
+    # Save formatted text
     txt_path = f"data/out/txt/{base_name}.txt"
-    with open(txt_path, 'w', encoding='utf-8') as f:
+    with open(txt_path, 'w', encoding='utf-8', newline='\n') as f:  # Explicit newline handling
         f.write(text)
     logger.info(f"Text saved to {txt_path}")
 
     # Save tables
     for i, table in enumerate(tables, 1):
         csv_path = f"data/out/csv/{base_name}_table{i}.csv"
-        with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+        with open(csv_path, 'w', encoding='utf-8', newline='') as f:
             writer = csv.writer(f)
             writer.writerows(table)
         logger.info(f"Table {i} saved to {csv_path}")
+
 
 def process_pdf(input_path: Path, config: dict):
     """Process a single PDF file"""

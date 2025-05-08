@@ -1,6 +1,6 @@
 # src/postprocessing/__init__.py
-from structure_data import structure_table
-from text_cleaner import (
+from postprocessing.structure_data import structure_table
+from postprocessing.text_cleaner import (
     process_pymupdf_output,
     process_donut_output,
     clean_text

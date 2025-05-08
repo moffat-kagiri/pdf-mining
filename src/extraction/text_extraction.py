@@ -44,17 +44,18 @@ class TextExtractor:
         return self._extract_with_ocr(pdf_path)
 
     def _extract_with_pymupdf(self, pdf_path: str) -> Optional[str]:
-        """Extract text directly using PyMuPDF"""
+        """Extract text with formatting preserved"""
         try:
             text = []
             with fitz.open(pdf_path) as doc:
                 for page in doc:
-                    page_text = page.get_text("text")
+                    # Extract text with layout preservation
+                    page_text = page.get_text("text", flags=fitz.TEXT_PRESERVE_LIGATURES | fitz.TEXT_PRESERVE_WHITESPACE)
                     if page_text:
                         text.append(page_text)
             return "\n".join(text) if text else None
         except Exception as e:
-            logger.warning(f"PyMuPDF extraction failed: {str(e)}")
+            self.logger.warning(f"PyMuPDF extraction failed: {str(e)}")
             return None
         
     def _extract_with_ocr(self, pdf_path: str) -> Optional[str]:
