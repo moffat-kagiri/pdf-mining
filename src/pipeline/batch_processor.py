@@ -13,6 +13,8 @@ from src.postprocessing import (
     clean_text,
     text_cleaner
 )
+from src.utils.config_loader import load_config
+
 def process_pdf(pdf_path: str, config: dict, mode: str = 'auto'):
     extractor = TextExtractor(config)
     
@@ -44,3 +46,10 @@ def process_single_pdf(pdf_path):
     except Exception as e:
         logger.error(f"Failed {pdf_path}: {str(e)}")
         return pd.DataFrame()
+
+def process_file(pdf_path):
+    extractor = TextExtractor(load_config())
+    text = extractor.extract_text(pdf_path)
+    if text:
+        return text_cleaner.clean_ocr_text(text)
+    return None

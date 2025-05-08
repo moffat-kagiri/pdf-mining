@@ -87,25 +87,23 @@ class TextExtractor:
             return []
 
     def _preprocess_image(self, image):
-        """Enhanced image preprocessing for better OCR"""
-        if isinstance(image, Image.Image):
-            image = np.array(image.convert('RGB'))
-        
+        """Enhanced preprocessing pipeline"""
         # Convert to grayscale
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
         
-        # Adaptive thresholding for better text recognition
+        # Denoising
+        denoised = cv2.fastNlMeansDenoising(gray, h=30)
+        
+        # Adaptive thresholding
         processed = cv2.adaptiveThreshold(
-            gray, 255,
+            denoised, 255,
             cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
             cv2.THRESH_BINARY, 11, 2
         )
         
-        # Special handling for bullet points
-        kernel = np.ones((2,2), np.uint8)
-        processed = cv2.morphologyEx(processed, cv2.MORPH_OPEN, kernel)
-        
-        return processed
+        # Morphological operations
+        kernel = np.ones((1,1), np.uint8)
+        return cv2.morphologyEx(processed, cv2.MORPH_CLOSE, kernel)
 
     def _run_ocr_engine(self, image: np.ndarray, layout) -> str:
         """Run OCR with hybrid approach (Tesseract + EasyOCR fallback)"""

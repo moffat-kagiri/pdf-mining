@@ -5,8 +5,9 @@ import logging
 import pymupdf
 import numpy as np
 import cv2
-from ..utils.config_loader import config
-from ..preprocessing.pdf_to_image import convert_pdf_to_images
+from src.utils.config_loader import config
+from ..preprocessing.image_tools import enhance_image
+from src.preprocessing.pdf_to_image import convert_pdf_to_images
 
 logger = logging.getLogger(__name__)
 
@@ -69,21 +70,26 @@ def _process_donut_layout(pdf_path):
     return layouts
 
 # Step 2: Layout Analysis
-def analyze_layout(pdf_path, config):
-    from ..preprocessing.image_tools import enhance_image
-    
-    enhanced_images = enhance_image(pdf_path, config)
+def analyze_layout(image: np.ndarray, config: dict) -> list:
+    """Robust layout analysis with error handling"""
     try:
-        layout_elements = detect_layout_elements(enhanced_images[0], config)
+        # Convert pure white background to transparent
+        if np.mean(image) > 250:  # Mostly white
+            image = cv2.threshold(image, 250, 255, cv2.THRESH_BINARY_INV)[1]
+            
+        # Enhance image before layout detection    
+        enhanced_image = enhance_image(image)
+        layout_elements = detect_layout_elements(enhanced_image, config)
         if not layout_elements:
-            logging.error(f"No layout elements detected in {pdf_path}")
+            logging.error(f"No layout elements detected in the image.")
             return None
-    except IndexError:
-        logging.error(f"No valid images found in {pdf_path}")
-        return None
+        # Add minimum region size validation
+        return [region for region in layout_elements 
+               if region.area > config.get('min_region_size', 500)]
     except Exception as e:
-        logging.error(f"Layout analysis failed for {pdf_path}: {str(e)}")
-        return None
+        logging.error(f"Layout analysis failed: {str(e)}")
+        return []  # Return empty rather than crashing
+
 
 # Explicitly export the public function
 __all__ = ['detect_layout_elements']

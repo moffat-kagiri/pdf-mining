@@ -13,3 +13,11 @@ ocr:
 layout:  # NEW SECTION
   model_path: "models/layout.model"
   threshold: 0.8
+  min_region_size: 500  # Ignore small elements
+  model_threshold: 0.7
+
+table_detection:
+  min_columns: 2          # Minimum columns to consider as table
+  min_rows: 3             # Minimum rows to consider as table
+  allowed_delimiters: ["|", ",", "\t"]
+  max_column_variance: 2  # Allow ±2 columns difference

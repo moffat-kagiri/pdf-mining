@@ -1,5 +1,29 @@
 import re
-from typing import List, Dict, Any
+from typing import Dict, List
+
+class TextCleaner:
+    def __init__(self, config: dict):
+        self.replace_patterns = config.get('replace_patterns', [])
+        self.common_errors = {
+            r'(\w+)@(\w+)-com': r'\1@\2.com',
+            r'Neugi': 'Ngugi',
+            r'[oO0¢]\s': '• '
+        }
+
+    def clean(self, text: str) -> str:
+        """Multi-stage text cleaning"""
+        # Standardize line endings
+        text = text.replace('\r\n', '\n')
+        
+        # Apply configured replacements
+        for pattern, replacement in self.replace_patterns:
+            text = re.sub(pattern, replacement, text)
+            
+        # Fix common OCR errors
+        for error, fix in self.common_errors.items():
+            text = re.sub(error, fix, text)
+            
+        return text.strip()
 
 def clean_text(text: str) -> str:
     """Clean extracted text by removing noise and normalizing."""

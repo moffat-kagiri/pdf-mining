@@ -1,128 +1,105 @@
 import argparse
-import os
 import logging
-from typing import List
+import csv
 from pathlib import Path
-from glob import glob
+import shutil
+from typing import Tuple, Optional
 
-# Configure logger
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('data/out/logs/processing.log'),
+        logging.StreamHandler()
+    ]
+)
 logger = logging.getLogger(__name__)
-from src.pipeline.batch_processor import process_pdf  #New Function Name
-from src.utils.config_loader import load_config
-from src.preprocessing.pdf_to_image import convert_pdf_to_images
-from src.preprocessing.image_tools import enhance_image
-from src.extraction import detect_layout_elements
+
 from src.extraction.text_extraction import TextExtractor
-from src.extraction.layout_analysis import analyze_layout
-from src.extraction.table_handling import reconstruct_table
-from src.postprocessing.text_cleaner import clean_text, process_donut_output, process_pymupdf_output
-from src.postprocessing.structure_data import structure_table
+from src.extraction.table_handling import detect_tables
+from src.postprocessing.text_cleaner import clean_text
+from src.utils.config_loader import load_config
 
-# Set environment variable for PyTorch
-os.environ["TORCH_HOME"] = r"C:\Users\MOFFAT KAGIRI\.torch"
+def ensure_directory_structure():
+    """Create required directories"""
+    Path("data/raw").mkdir(exist_ok=True)
+    Path("data/out/txt").mkdir(parents=True, exist_ok=True)
+    Path("data/out/csv").mkdir(parents=True, exist_ok=True)
+    Path("data/out/logs").mkdir(parents=True, exist_ok=True)
 
-def process_pdf(pdf_path, config):
+def process_content(text: str) -> Tuple[str, Optional[list]]:
+    """Detect and extract tables from content"""
+    tables = detect_tables(text)
+    if tables:
+        logger.info(f"Detected {len(tables)} tables")
+    return clean_text(text), tables
+
+def save_outputs(base_name: str, text: str, tables: list):
+    """Save both text and table outputs"""
+    # Save text
+    txt_path = f"data/out/txt/{base_name}.txt"
+    with open(txt_path, 'w', encoding='utf-8') as f:
+        f.write(text)
+    logger.info(f"Text saved to {txt_path}")
+
+    # Save tables
+    for i, table in enumerate(tables, 1):
+        csv_path = f"data/out/csv/{base_name}_table{i}.csv"
+        with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerows(table)
+        logger.info(f"Table {i} saved to {csv_path}")
+
+def process_pdf(input_path: Path, config: dict):
+    """Process a single PDF file"""
     try:
-        # Convert PDF to images
-        images = convert_pdf_to_images(pdf_path)
-        if not images:
-            raise ValueError("No images extracted from PDF")
+        # Stage 1: Copy to raw directory (if not already there)
+        if not input_path.parent.samefile(Path("data/raw")):
+            raw_path = Path("data/raw") / input_path.name
+            shutil.copy(input_path, raw_path)
+            input_path = raw_path
 
-        # Process each page individually
-        all_results = []
-        for img in images:
-            # Get layout elements for this page
-            layout_elements = detect_layout_elements(img)  # Pass single image
-            
-            # Extract text from each element
-            for element in layout_elements:
-                if 'image' in element:  # For image regions
-                    text_data = extract_text(element['image'])
-                    element['text'] = text_data
-                all_results.append(element)
-                
-        return all_results
-        
+        # Stage 2: Content extraction
+        extractor = TextExtractor(config)
+        raw_text = extractor.extract_text(str(input_path))
+        if not raw_text:
+            raise ValueError("No text extracted")
+
+        # Stage 3: Content processing
+        clean_text, tables = process_content(raw_text)
+
+        # Stage 4: Save outputs
+        base_name = input_path.stem
+        save_outputs(base_name, clean_text, tables)
+
+        return True
+
     except Exception as e:
-        logger.error(f"Failed to process {pdf_path}: {str(e)}")
-        return []
-def parse_args():
-    parser = argparse.ArgumentParser(description='PDF Mining Tool')
-    parser.add_argument('--mode', choices=['auto', 'direct', 'ocr'], default='auto',
-                   help='Extraction mode (direct text or OCR)')
-    parser.add_argument('--input', required=True, help='Input PDF file or directory')
-    parser.add_argument('--output', default='./data/processed', help='Output directory')
-    parser.add_argument('--config', help='Path to config file')
-    parser.add_argument('--workers', type=int, default=1, help='Number of worker processes')
-    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
-    return parser.parse_args()
+        logger.error(f"Failed to process {input_path.name}: {str(e)}")
+        return False
 
 def main():
-    args = parse_args()
+    ensure_directory_structure()
+    parser = argparse.ArgumentParser(description="PDF Mining Tool")
     
-    # Setup logging first
-    log_level = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(level=log_level, 
-                       format='%(asctime)s - %(levelname)s - %(message)s')
+    parser.add_argument('--input', required=True,
+                      help="Input PDF file or directory")
+    parser.add_argument('--config', default='configs/ocr.yaml',
+                      help="Configuration file path")
+    
+    args = parser.parse_args()
+    config = load_config(args.config)
+    input_path = Path(args.input)
 
-    # Load configuration with proper error handling
-    try:
-        config = load_config(args.config)
-        if args.config:
-            logging.info(f"Loaded configuration from {args.config}")
-        else:
-            logging.info("Using default configuration")
-    except Exception as e:
-        logging.error(f"Error loading configuration: {str(e)}")
-        return
-
-    # Resolve input paths
-    if os.path.isdir(args.input):
-        pdf_paths = glob(os.path.join(args.input, "*.pdf"))
+    if input_path.is_file():
+        success = process_pdf(input_path, config)
+        exit(0 if success else 1)
     else:
-        pdf_paths = glob(args.input)  # Supports wildcards (e.g., /data/*.pdf)
-
-    # Ensure output directory exists
-    os.makedirs(args.output, exist_ok=True)
-
-    # Process each PDF
-    for pdf_path in pdf_paths:
-        logging.info(f"Processing {pdf_path}")
-
-        # Step 1: Preprocessing
-        try:
-            images = convert_pdf_to_images(pdf_path, config)
-            if not images:
-                logging.error(f"No images extracted from {pdf_path}")
-                continue
-                
-            enhanced_images = [enhance_image(image, config) for image in images]
-            if not enhanced_images:
-                logging.error(f"Image enhancement failed for {pdf_path}")
-                continue
-                
-            logging.info(f"Successfully processed {len(enhanced_images)} pages from {pdf_path}")
-        except Exception as e:
-            logging.error(f"Failed to process {pdf_path}: {str(e)}")
-            continue
-
-        # Step 2: Layout Analysis
-        layout_elements = detect_layout_elements(enhanced_images[0], config)  # Pass first image or use pdf_path
-
-        # Step 3: Data Extraction
-        text_data = extract_text(layout_elements, config)
-        table_data = reconstruct_table(layout_elements, config)
-
-        # Step 4: Postprocessing
-        cleaned_text = clean_text(text_data)
-        structured_table = structure_table(table_data)
-
-        # Step 5: Save Output
-        output_file = os.path.join(args.output, f"{Path(pdf_path).stem}.xlsx")
-        structured_table.to_excel(output_file, index=False)
-        logging.info(f"Saved structured data to {output_file}")
-
-    logging.info("Batch processing complete.")
+        processed = sum(process_pdf(pdf, config) 
+                       for pdf in Path("raw").glob("*.pdf"))
+        logger.info(f"Processed {processed} files")
+        exit(0 if processed > 0 else 1)
 
 if __name__ == "__main__":
     main()
