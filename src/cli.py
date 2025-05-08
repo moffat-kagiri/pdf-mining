@@ -1,4 +1,17 @@
 #!/usr/bin/env python
+"""
+PDF Mining CLI Tool
+------------------
+Command-line interface for extracting and analyzing text from PDF documents.
+Supports both single file and batch processing with quality checks.
+
+Key Features:
+- Text extraction from PDFs (OCR and direct)
+- Table detection and extraction
+- Quality analysis and reporting
+- Batch processing capabilities
+"""
+
 import argparse
 import csv
 import logging
@@ -20,7 +33,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def ensure_directory_structure():
-    """Create required directories"""
+    """Create required directory structure for outputs and logs.
+    
+    Creates:
+    - data/raw: For input PDFs
+    - data/out/txt: For extracted text
+    - data/out/csv: For extracted tables
+    - data/out/quality: For quality reports
+    - data/out/logs: For processing logs
+    """
     Path("data/raw").mkdir(parents=True, exist_ok=True)
     Path("data/out/txt").mkdir(parents=True, exist_ok=True)
     Path("data/out/csv").mkdir(parents=True, exist_ok=True)
@@ -28,11 +49,25 @@ def ensure_directory_structure():
     Path("data/out/logs").mkdir(parents=True, exist_ok=True)
 
 class QualityAnalyzer:
-    """Quality assessment for extracted content"""
+    """Analyzes and reports on the quality of extracted text content.
+    
+    Provides metrics including:
+    - Character, word, and sentence counts
+    - Line analysis
+    - Text structure assessment (bullet points, whitespace)
+    - Sample text preview
+    """
     
     @staticmethod
     def calculate_metrics(text: str) -> Dict[str, float]:
-        """Compute quality metrics for extracted text"""
+        """Compute comprehensive quality metrics for extracted text.
+        
+        Args:
+            text: The extracted text to analyze
+            
+        Returns:
+            Dictionary of calculated metrics including counts and ratios
+        """
         lines = text.splitlines()
         words = re.findall(r'\w+', text)
         sentences = re.split(r'[.!?]+', text)
@@ -68,7 +103,14 @@ class QualityAnalyzer:
         return "\n".join(report)
 
 def load_config(config_path: str = None) -> dict:
-    """Load configuration with defaults"""
+    """Load configuration with fallback to defaults.
+    
+    Args:
+        config_path: Optional path to YAML configuration file
+        
+    Returns:
+        Dictionary containing configuration settings with defaults merged
+    """
     default_config = {
         'text_extraction': {
             'min_text_length': 50,
@@ -100,7 +142,15 @@ def load_config(config_path: str = None) -> dict:
         return default_config
 
 def process_content(text: str, config: dict) -> Tuple[str, Optional[list]]:
-    """Process extracted content"""
+    """Process and clean extracted content, detect tables.
+    
+    Args:
+        text: Raw extracted text
+        config: Configuration dictionary
+        
+    Returns:
+        Tuple of (cleaned_text, detected_tables)
+    """
     from extraction.table_handling import detect_tables
     from postprocessing.text_cleaner import TextCleaner
     
@@ -109,7 +159,14 @@ def process_content(text: str, config: dict) -> Tuple[str, Optional[list]]:
     return cleaner.clean(text), tables
 
 def save_outputs(base_name: str, text: str, tables: list, pdf_path: str):
-    """Save all output files"""
+    """Save all processing outputs to respective directories.
+    
+    Saves:
+    - Extracted text (.txt)
+    - Detected tables (.csv)
+    - Quality report (_qc.txt)
+    - Prints summary to console
+    """
     # Save text
     txt_path = f"data/out/txt/{base_name}.txt"
     with open(txt_path, 'w', encoding='utf-8') as f:
@@ -139,7 +196,22 @@ def save_outputs(base_name: str, text: str, tables: list, pdf_path: str):
     print("=" * 50)
 
 def process_pdf(input_path: Path, config: dict) -> bool:
-    """Process a single PDF file"""
+    """Process a single PDF file through the complete pipeline.
+    
+    Workflow:
+    1. Copy to raw directory if needed
+    2. Extract text content
+    3. Process and clean text
+    4. Quality validation
+    5. Save all outputs
+    
+    Args:
+        input_path: Path to PDF file
+        config: Configuration dictionary
+        
+    Returns:
+        Boolean indicating success/failure
+    """
     try:
         from extraction.text_extraction import TextExtractor
         
@@ -172,6 +244,14 @@ def process_pdf(input_path: Path, config: dict) -> bool:
         return False
 
 def main():
+    """Main entry point for the CLI application.
+    
+    Handles:
+    - Command line argument parsing
+    - Configuration loading
+    - Single file or batch processing
+    - Exit code management
+    """
     ensure_directory_structure()
     
     parser = argparse.ArgumentParser(
