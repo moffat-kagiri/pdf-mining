@@ -12,6 +12,17 @@ def clean_text(text: str) -> str:
     text = re.sub(r'[^\x00-\x7F]+', '', text)  # remove non-ASCII
     return text
 
+def clean_ocr_text(text: str) -> str:
+    """Fix common OCR artifacts"""
+    # Replace OCR bullet artifacts
+    text = text.replace('e ', '• ')
+    text = text.replace('© ', '• ')
+    
+    # Fix hyphen/dash inconsistencies
+    text = re.sub(r'(\w)\s*[-—]\s*(\w)', r'\1-\2', text)
+    
+    return text
+
 def process_pymupdf_output(layout: Dict[str, Any]) -> List[Dict[str, str]]:
     """Process text blocks from PyMuPDF layout."""
     results = []

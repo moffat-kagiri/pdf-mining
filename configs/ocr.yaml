@@ -1,25 +1,15 @@
-# Tesseract/EasyOCR params
-# This file contains the configuration for OCR processing using Tesseract and EasyOCR.
-# It specifies the languages to be used, page segmentation mode, and OCR engine mode.
-
-tesseract:
-  languages: ["eng", "fra"]
-  psm: 6          # Page segmentation mode
-  oem: 1          # OCR engine mode
-easyocr:
-  gpu: false      # Disable GPU if unavailable
-
-
 text_extraction:
-  min_text_length: 100
+  min_text_length: 50
   dpi: 300
-  poppler_path: "C:/Program Files/poppler/Library/bin"  # Adjust for your system
+  poppler_path: "C:/Program Files/poppler/Library/bin"  # REQUIRED
   thread_count: 2
 
 ocr:
+  engine: "hybrid"  # tesseract|easyocr|hybrid
   tesseract_config: "--psm 6"
   denoise: true
   binarize: false
 
-text_extraction:
-  poppler_path: "C:/Program Files/poppler/Library/bin" 
+layout:  # NEW SECTION
+  model_path: "models/layout.model"
+  threshold: 0.8

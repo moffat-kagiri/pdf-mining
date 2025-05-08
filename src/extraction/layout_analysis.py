@@ -72,7 +72,7 @@ def _process_donut_layout(pdf_path):
 def analyze_layout(pdf_path, config):
     from ..preprocessing.image_tools import enhance_image
     
-    enhanced_images = enhance_image(pdf_path)
+    enhanced_images = enhance_image(pdf_path, config)
     try:
         layout_elements = detect_layout_elements(enhanced_images[0], config)
         if not layout_elements:

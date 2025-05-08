@@ -23,6 +23,7 @@ class TextExtractor:
         """Initialize with configuration settings"""
         self.config = config.get('text_extraction', {})
         self.ocr_config = config.get('ocr', {})
+        self.layout_config = config.get('layout', {})
         self._validate_config()
 
     def extract_text(self, pdf_path: str) -> Optional[str]:
@@ -55,20 +56,21 @@ class TextExtractor:
         except Exception as e:
             logger.warning(f"PyMuPDF extraction failed: {str(e)}")
             return None
-
+        
     def _extract_with_ocr(self, pdf_path: str) -> Optional[str]:
-        """Full OCR processing pipeline"""
+        """Full OCR processing pipeline with proper config handling"""
         try:
             images = self._convert_pdf_to_images(pdf_path)
             if not images:
                 return None
 
-            # Process first page (expand to multiple pages if needed)
+            # Process first page with config
             image = self._preprocess_image(images[0])
-            layout = analyze_layout(image)
+            layout = analyze_layout(image, self.config)  # Pass config
             return self._run_ocr_engine(image, layout)
+            
         except Exception as e:
-            logger.error(f"OCR pipeline failed: {str(e)}")
+            logger.error(f"OCR pipeline failed: {str(e)}", exc_info=True)
             return None
 
     def _convert_pdf_to_images(self, pdf_path: str) -> List[np.ndarray]:
@@ -84,19 +86,26 @@ class TextExtractor:
             logger.error(f"PDF to image conversion failed: {str(e)}")
             return []
 
-    def _preprocess_image(self, image: Union[np.ndarray, Image.Image]) -> np.ndarray:
-        """Convert and enhance image for OCR"""
+    def _preprocess_image(self, image):
+        """Enhanced image preprocessing for better OCR"""
         if isinstance(image, Image.Image):
             image = np.array(image.convert('RGB'))
         
-        # Apply image processing based on config
-        if self.ocr_config.get('denoise', True):
-            image = cv2.fastNlMeansDenoisingColored(image, None, 10, 10, 7, 21)
-        if self.ocr_config.get('binarize', False):
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            _, image = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        # Convert to grayscale
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         
-        return image
+        # Adaptive thresholding for better text recognition
+        processed = cv2.adaptiveThreshold(
+            gray, 255,
+            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+            cv2.THRESH_BINARY, 11, 2
+        )
+        
+        # Special handling for bullet points
+        kernel = np.ones((2,2), np.uint8)
+        processed = cv2.morphologyEx(processed, cv2.MORPH_OPEN, kernel)
+        
+        return processed
 
     def _run_ocr_engine(self, image: np.ndarray, layout) -> str:
         """Run OCR with hybrid approach (Tesseract + EasyOCR fallback)"""
