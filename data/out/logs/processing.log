@@ -9,3 +9,18 @@
 2025-05-08 19:46:33,597 - WARNING - Direct extraction failed, attempting OCR fallback
 2025-05-08 19:46:40,307 - ERROR - Layout analysis failed: enhance_image() missing 1 required positional argument: 'config'
 2025-05-08 19:46:43,982 - INFO - Text saved to data/out/txt/image.txt
+2025-05-08 19:50:07,646 - ERROR - Config load failed: [Errno 2] No such file or directory: 'C:\\Users\\MOFFAT KAGIRI\\Documents\\GitHub\\pdf-mining\\src\\configs\\configs\\ocr.yaml.yaml'
+2025-05-08 19:50:07,646 - INFO - Using default configuration
+2025-05-08 19:50:07,646 - WARNING - poppler_path not configured, PDF conversion may fail
+2025-05-08 19:50:07,668 - INFO - Successfully extracted text directly from PDF
+2025-05-08 19:50:07,668 - INFO - Text saved to data/out/txt/simple.txt
+2025-05-08 19:51:06,948 - ERROR - Config load failed: [Errno 2] No such file or directory: 'C:\\Users\\MOFFAT KAGIRI\\Documents\\GitHub\\pdf-mining\\src\\configs\\configs\\ocr.yaml.yaml'
+2025-05-08 19:51:06,948 - INFO - Using default configuration
+2025-05-08 19:51:06,954 - WARNING - poppler_path not configured, PDF conversion may fail
+2025-05-08 19:51:06,971 - INFO - Successfully extracted text directly from PDF
+2025-05-08 19:51:06,974 - INFO - Text saved to data/out/txt/simple.txt
+2025-05-08 19:57:25,772 - ERROR - Config load failed: [Errno 2] No such file or directory: 'C:\\Users\\MOFFAT KAGIRI\\Documents\\GitHub\\pdf-mining\\src\\configs\\configs\\ocr.yaml.yaml'
+2025-05-08 19:57:25,772 - INFO - Using default configuration
+2025-05-08 19:57:25,772 - WARNING - poppler_path not configured, PDF conversion may fail
+2025-05-08 19:57:25,790 - INFO - Successfully extracted text directly from PDF
+2025-05-08 19:57:25,790 - ERROR - Failed to process simple.pdf: __init__() missing 1 required positional argument: 'config'

@@ -4,6 +4,11 @@ text_extraction:
   poppler_path: "C:/Program Files/poppler/Library/bin"  # REQUIRED
   thread_count: 2
 
+text_processing:
+  preserve_newlines: true
+  max_consecutive_newlines: 2
+  paragraph_threshold: 4  # Lines shorter than this are considered part of same paragraph
+
 ocr:
   engine: "hybrid"  # tesseract|easyocr|hybrid
   tesseract_config: "--psm 6"
