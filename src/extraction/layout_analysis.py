@@ -5,9 +5,9 @@ import logging
 import pymupdf
 import numpy as np
 import cv2
-from src.utils.config_loader import config
-from ..preprocessing.image_tools import enhance_image
-from src.preprocessing.pdf_to_image import convert_pdf_to_images
+from utils.config_loader import config
+from preprocessing.image_tools import enhance_image
+from preprocessing.pdf_to_image import convert_pdf_to_images
 
 logger = logging.getLogger(__name__)
 

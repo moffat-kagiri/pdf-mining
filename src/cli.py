@@ -16,10 +16,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-from src.extraction.text_extraction import TextExtractor
-from src.extraction.table_handling import detect_tables
-from src.postprocessing.text_cleaner import clean_text
-from src.utils.config_loader import load_config
+from extraction.text_extraction import TextExtractor
+from extraction.table_handling import detect_tables
+from postprocessing.text_cleaner import clean_text
+from utils.config_loader import load_config
 
 def ensure_directory_structure():
     """Create required directories"""

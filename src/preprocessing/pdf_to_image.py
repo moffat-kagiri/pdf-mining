@@ -5,7 +5,7 @@ import shutil
 from PIL import Image
 from pdf2image import convert_from_path
 import fitz  # PyMuPDF
-from ..utils.config_loader import config
+from utils.config_loader import config
 import logging
 
 logger = logging.getLogger(__name__)

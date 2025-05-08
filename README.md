@@ -41,6 +41,15 @@ Legal/Research: Scrape text from articles/contracts into tables.
 
 Archival: Digitize handwritten forms or historical documents.
 
+
+## First-Time Setup
+
+1. Create directory structure:
+
+   ```bash
+   mkdir -p data/{raw,out/{txt,csv,logs},temp}
+    ```
+
 ## Quick Start
 
 ```bash
