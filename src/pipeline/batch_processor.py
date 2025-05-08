@@ -29,7 +29,7 @@ def process_single_pdf(pdf_path):
         images = pdf_to_image.convert_pdf_to_images(pdf_path)
         
         # Step 2: Analyze Layout
-        parser_type, layout_data = layout_analysis.analyze_pdf(pdf_path)
+        parser_type, layout_data = analyze_layout(pdf_path)
         
         # Step 3: Extract Content
         results = []
