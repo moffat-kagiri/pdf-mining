@@ -9,9 +9,17 @@ tesseract:
 easyocr:
   gpu: false      # Disable GPU if unavailable
 
+
 text_extraction:
-  min_text_length: 50  # Minimum chars to consider extraction valid
-  fallback_enabled: true
-  fallback_threshold: 0.5  # Threshold for fallback to EasyOCR
-  fallback_languages: ["en", "fr"]  # Languages for fallback OCR
-  fallback_psm: 6  # Page segmentation mode for fallback
+  min_text_length: 100
+  dpi: 300
+  poppler_path: "C:/Program Files/poppler/Library/bin"  # Adjust for your system
+  thread_count: 2
+
+ocr:
+  tesseract_config: "--psm 6"
+  denoise: true
+  binarize: false
+
+text_extraction:
+  poppler_path: "C:/Program Files/poppler/Library/bin" 
