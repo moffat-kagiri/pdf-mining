@@ -1,0 +1,25 @@
+Quality Report for ollyvian.pdf
+========================================
+Characters: 2177
+Words: 443
+Lines: 43
+Sentences: 47
+Avg. word length: 3.7
+Avg. words/line: 10.3
+Bullet points: 28
+
+Sample Text:
+Stanbic Bank
+y2 rs. 24 February 2025
+ak Ket gnc 12:47:22
+xc BAN™ 3 BIA 570• Spare” • Pipes ©
+Preah
+Account Statement cre fs) o• ¢.0-%
+Account : 0100009681048 :
+Customer : 1477112 OLLYVIAN AGENCIES LIMITED
+Currency : KES
+Book Date Reference Description Value Date Debit Credit Closing Balance
+Balance at Period S 0.0• tart
+26 APR 22 AAACT221163PNV Loan Disbursement 26 APR 22 3,225,000.0• -3,225,000.0• IXNR
+25 MAY 22 AAACT22145LW9G Principal Interest D 25 MAY 22 34,679.8• ~3,259,679.8• 52PX ue
+25 MA...

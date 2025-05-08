@@ -41,3 +41,7 @@
 2025-05-08 20:17:58,141 - INFO - Successfully extracted text directly from PDF
 2025-05-08 20:17:58,180 - INFO - Text saved to data/out/txt/sample.txt
 2025-05-08 20:17:58,183 - INFO - Quality report saved to data/out/quality/sample_qc.txt
+2025-05-08 20:20:40,030 - WARNING - Direct extraction failed, attempting OCR fallback
+2025-05-08 20:20:47,550 - ERROR - Layout analysis failed: enhance_image() missing 1 required positional argument: 'config'
+2025-05-08 20:20:49,518 - INFO - Text saved to data/out/txt/ollyvian.txt
+2025-05-08 20:20:49,520 - INFO - Quality report saved to data/out/quality/ollyvian_qc.txt
