@@ -1,0 +1,23 @@
+Quality Report for image.pdf
+========================================
+Characters: 3010
+Words: 412
+Lines: 45
+Sentences: 16
+Avg. word length: 6.0
+Avg. words/line: 9.2
+Bullet points: 24
+
+Sample Text:
+Moffat Kagiri Ngugi
+0740-294-373 | kagirimoffat@outlook.com | linkedin.com/in/moffatkagiri/ | github.com/moffat-kagiri
+EDUCATION
+University of East London London, UK
+Master of Science in Data Science Mar. 2022 - Present
+Daystar University Nairobi, KE
+Bachelor of Science in Actuarial Science Aug. 2017 - Nov 2021
+EXPERIENCE
+Personal Banker Sep 2022 — Present
+KCB Bank Kenya Nanyuki, KE
+• Analysed customer transaction data and identified high value clients, increasing my sales conversion rates.
+• De...
