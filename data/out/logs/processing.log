@@ -38,3 +38,6 @@
 2025-05-08 20:14:44,934 - ERROR - Layout analysis failed: enhance_image() missing 1 required positional argument: 'config'
 2025-05-08 20:14:48,162 - INFO - Text saved to data/out/txt/image.txt
 2025-05-08 20:14:48,168 - INFO - Quality report saved to data/out/quality/image_qc.txt
+2025-05-08 20:17:58,141 - INFO - Successfully extracted text directly from PDF
+2025-05-08 20:17:58,180 - INFO - Text saved to data/out/txt/sample.txt
+2025-05-08 20:17:58,183 - INFO - Quality report saved to data/out/quality/sample_qc.txt

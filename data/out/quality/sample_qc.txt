@@ -1,0 +1,32 @@
+Quality Report for sample.pdf
+========================================
+Characters: 39606
+Words: 6454
+Lines: 1036
+Sentences: 555
+Avg. word length: 4.9
+Avg. words/line: 6.2
+Bullet points: 209
+
+Sample Text:
+Provided proper attribution is provided, Google hereby grants permission t• reproduce the tables and figures in this paper solely for use in journalistic or
+scholarly works.
+Attention Is All You Need
+Ashish Vaswani∗
+Google Brain
+avaswani@google.com
+Noam Shazeer∗
+Google Brain
+noam@google.com
+Niki Parmar∗
+Google Research
+nikip@google.com
+Jakob Uszkoreit∗
+Google Research
+usz@google.com
+Llion Jones∗
+Google Research
+llion@google.com
+Aidan N. Gomez∗†
+University of Toront• aidan@cs.toronto.edu
+Łukasz K...
