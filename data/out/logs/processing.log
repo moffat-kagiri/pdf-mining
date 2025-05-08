@@ -24,3 +24,13 @@
 2025-05-08 19:57:25,772 - WARNING - poppler_path not configured, PDF conversion may fail
 2025-05-08 19:57:25,790 - INFO - Successfully extracted text directly from PDF
 2025-05-08 19:57:25,790 - ERROR - Failed to process simple.pdf: __init__() missing 1 required positional argument: 'config'
+2025-05-08 20:06:37,607 - INFO - Configuration loaded successfully
+2025-05-08 20:06:48,590 - INFO - Successfully extracted text directly from PDF
+2025-05-08 20:06:48,593 - ERROR - Failed to process simple.pdf: detect_tables() takes 1 positional argument but 2 were given
+2025-05-08 20:07:47,883 - INFO - Configuration loaded successfully
+2025-05-08 20:07:55,079 - INFO - Successfully extracted text directly from PDF
+2025-05-08 20:07:55,089 - INFO - Text saved to data/out/txt/simple.txt
+2025-05-08 20:08:31,888 - INFO - Configuration loaded successfully
+2025-05-08 20:08:38,725 - WARNING - Direct extraction failed, attempting OCR fallback
+2025-05-08 20:08:45,598 - ERROR - Layout analysis failed: enhance_image() missing 1 required positional argument: 'config'
+2025-05-08 20:08:48,117 - INFO - Text saved to data/out/txt/image.txt

@@ -71,7 +71,7 @@ def process_content(text: str, config: dict) -> Tuple[str, Optional[list]]:
     from extraction.table_handling import detect_tables
     from postprocessing.text_cleaner import TextCleaner
     
-    tables = detect_tables(text, config.get('table_detection', {}))
+    tables = detect_tables(text)
     if tables:
         logger.info(f"Detected {len(tables)} tables")
     
