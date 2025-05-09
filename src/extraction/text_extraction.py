@@ -1,147 +1,140 @@
-# src/extraction/text_extraction.py
 import logging
-from typing import Optional, List, Union
+import os
+from typing import List, Dict, Optional
 import numpy as np
 from PIL import Image
 import cv2
-
-# PDF processing
-import fitz  # PyMuPDF
+import fitz
 from pdf2image import convert_from_path
-
-# OCR engines
-import pytesseract
-from easyocr import Reader
-
-# Local imports
-from .layout_analysis import analyze_layout
 
 logger = logging.getLogger(__name__)
 
 class TextExtractor:
     def __init__(self, config: dict):
-        """Initialize with configuration settings"""
-        self.config = config.get('text_extraction', {})
-        self.ocr_config = config.get('ocr', {})
-        self.layout_config = config.get('layout', {})
-        self._validate_config()
-
+        self.config = config
+        self.profile = config.get('profile', config.get('default_profile', 'standard'))
+        self.profile_config = config['profiles'].get(self.profile, {})
+        
     def extract_text(self, pdf_path: str) -> Optional[str]:
-        """
-        Main extraction method following the workflow:
-        1. Try direct text extraction
-        2. Fallback to image-based OCR if needed
-        3. Return structured text or None if failed
-        """
-        # First attempt: Direct text extraction
-        text = self._extract_with_pymupdf(pdf_path)
-        if self._is_valid_text(text):
-            logger.info("Successfully extracted text directly from PDF")
-            return text
+        """Main extraction method with profile handling"""
+        try:
+            if self._should_use_direct_extraction():
+                text = self._extract_with_pymupdf(pdf_path)
+                if text and self._validate_text(text):
+                    return text
+            
+            return self._extract_with_ocr(pdf_path)
+        except Exception as e:
+            logger.error(f"Extraction failed: {str(e)}")
+            return None
 
-        # Fallback: Image-based OCR
-        logger.warning("Direct extraction failed, attempting OCR fallback")
-        return self._extract_with_ocr(pdf_path)
+    def _should_use_direct_extraction(self) -> bool:
+        """Determine if direct text extraction should be attempted"""
+        return self.profile != 'low_res' and not self.profile_config.get('force_ocr', False)
 
     def _extract_with_pymupdf(self, pdf_path: str) -> Optional[str]:
-        """Extract text with formatting preserved"""
+        """Direct text extraction for native PDFs"""
         try:
-            text = []
             with fitz.open(pdf_path) as doc:
-                for page in doc:
-                    # Extract text with layout preservation
-                    page_text = page.get_text("text", flags=fitz.TEXT_PRESERVE_LIGATURES | fitz.TEXT_PRESERVE_WHITESPACE)
-                    if page_text:
-                        text.append(page_text)
-            return "\n".join(text) if text else None
+                return "\n".join(page.get_text("text") for page in doc)
         except Exception as e:
-            self.logger.warning(f"PyMuPDF extraction failed: {str(e)}")
+            logger.warning(f"PyMuPDF extraction failed: {str(e)}")
             return None
-        
+
     def _extract_with_ocr(self, pdf_path: str) -> Optional[str]:
-        """Full OCR processing pipeline with proper config handling"""
+        """OCR-based extraction with image preprocessing"""
         try:
-            images = self._convert_pdf_to_images(pdf_path)
+            images = self._pdf_to_images(pdf_path)
             if not images:
                 return None
-
-            # Process first page with config
-            image = self._preprocess_image(images[0])
-            layout = analyze_layout(image, self.config)  # Pass config
-            return self._run_ocr_engine(image, layout)
-            
+                
+            processed_images = [self._preprocess_image(img) for img in images]
+            return self._run_ocr(processed_images)
         except Exception as e:
-            logger.error(f"OCR pipeline failed: {str(e)}", exc_info=True)
+            logger.error(f"OCR pipeline failed: {str(e)}")
             return None
 
-    def _convert_pdf_to_images(self, pdf_path: str) -> List[np.ndarray]:
-        """Convert PDF pages to images with proper error handling"""
+    def _pdf_to_images(self, pdf_path: str) -> List[np.ndarray]:
+        """Convert PDF to images with profile-specific settings"""
+        dpi = self.profile_config.get('dpi', 300)
         try:
-            return convert_from_path(
+            images = convert_from_path(
                 pdf_path,
-                dpi=self.config.get('dpi', 300),
+                dpi=dpi,
                 poppler_path=self.config.get('poppler_path'),
-                thread_count=self.config.get('thread_count', 1)
+                thread_count=1  # Safer for low-memory systems
             )
+            return [np.array(img.convert('RGB')) for img in images]
         except Exception as e:
             logger.error(f"PDF to image conversion failed: {str(e)}")
             return []
 
-    def _preprocess_image(self, image):
-        """Enhanced preprocessing pipeline"""
+    def _preprocess_image(self, image: np.ndarray) -> np.ndarray:
+        """Apply profile-specific image enhancements"""
         # Convert to grayscale
-        gray = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
+        processed = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
         
-        # Denoising
-        denoised = cv2.fastNlMeansDenoising(gray, h=30)
+        # Profile-specific processing
+        if self.profile == 'low_res':
+            processed = self._enhance_low_res(processed)
+        else:
+            if self.profile_config.get('denoise', True):
+                processed = cv2.fastNlMeansDenoising(processed, h=30)
+            if self.profile_config.get('binarize', False):
+                _, processed = cv2.threshold(processed, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
         
-        # Adaptive thresholding
-        processed = cv2.adaptiveThreshold(
-            denoised, 255,
+        return processed
+
+    def _enhance_low_res(self, image: np.ndarray) -> np.ndarray:
+        """Specialized processing for low-resolution documents"""
+        # Contrast enhancement
+        contrast = self.profile_config.get('contrast_boost', 2.0)
+        image = cv2.convertScaleAbs(image, alpha=contrast, beta=0)
+        
+        # Sharpening
+        kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+        image = cv2.filter2D(image, -1, kernel * self.profile_config.get('sharpening', 1.5))
+        
+        # Advanced binarization
+        image = cv2.adaptiveThreshold(
+            image, 255,
             cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
             cv2.THRESH_BINARY, 11, 2
         )
         
         # Morphological operations
         kernel = np.ones((1,1), np.uint8)
-        return cv2.morphologyEx(processed, cv2.MORPH_CLOSE, kernel)
+        image = cv2.morphologyEx(image, cv2.MORPH_CLOSE, kernel)
+        
+        return image
 
-    def _run_ocr_engine(self, image: np.ndarray, layout) -> str:
-        """Run OCR with hybrid approach (Tesseract + EasyOCR fallback)"""
+    def _run_ocr(self, images: List[np.ndarray]) -> str:
+        """Run OCR with profile-specific settings"""
         try:
-            # Try Tesseract first
-            text = pytesseract.image_to_string(
-                image,
-                config=self.ocr_config.get('tesseract_config', '')
-            )
+            import pytesseract
+            from easyocr import Reader
             
-            # Validate Tesseract results
-            if len(text.strip()) > self.config.get('min_text_length', 50):
-                return text
+            ocr_engine = self.profile_config.get('ocr_engine', 'hybrid')
+            text = []
+            
+            for img in images:
+                if ocr_engine in ['tesseract', 'hybrid']:
+                    config = '--psm 6'
+                    if self.profile == 'low_res':
+                        config += ' -c tessedit_char_blacklist=||<>"\''
+                    page_text = pytesseract.image_to_string(img, config=config)
+                    text.append(page_text)
                 
-            # Fallback to EasyOCR if Tesseract results are poor
-            reader = Reader(['en'])
-            results = reader.readtext(image)
-            return " ".join([res[1] for res in results])
+                if ocr_engine == 'hybrid' and len(page_text.strip()) < self.profile_config.get('min_text_length', 30):
+                    reader = Reader(['en'])
+                    results = reader.readtext(img)
+                    text.append(" ".join([res[1] for res in results]))
+            
+            return "\n".join(text)
         except Exception as e:
-            logger.error(f"OCR processing failed: {str(e)}")
-            return ""
+            raise RuntimeError(f"OCR failed: {str(e)}")
 
-    def _is_valid_text(self, text: Optional[str]) -> bool:
+    def _validate_text(self, text: str) -> bool:
         """Validate extracted text meets quality thresholds"""
-        if not text or not text.strip():
-            return False
-        return len(text.strip()) >= self.config.get('min_text_length', 100)
-
-    def _validate_config(self):
-        """Ensure required configuration values are present"""
-        if 'poppler_path' not in self.config:
-            logger.warning("poppler_path not configured, PDF conversion may fail")
-
-
-def extract_text(pdf_path: str, config: dict) -> Optional[str]:
-    """Module-level function to match expected imports"""
-    return TextExtractor(config).extract_text(pdf_path)
-
-
-__all__ = ['TextExtractor', 'extract_text']
+        min_length = self.profile_config.get('min_text_length', 50)
+        return len(text.strip()) >= min_length

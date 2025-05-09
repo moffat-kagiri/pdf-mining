@@ -47,8 +47,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def process_single_file(args: tuple) -> Dict:
+from typing import List, Dict, Tuple  # Add this at the top
+
+def process_single_file(args: Tuple[str, dict]) -> Dict:
     """Standalone function for processing individual PDF files"""
+    import sys
+    from pathlib import Path
+    
+    # Add parent directory to path for worker processes
+    sys.path.append(str(Path(__file__).parent.parent))
+    
     from extraction.text_extraction import TextExtractor
     from postprocessing.text_cleaner import TextCleaner
     
@@ -154,6 +162,12 @@ def main():
     parser.add_argument('--input', required=True, help="Input PDF file or directory")
     parser.add_argument('--config', default='configs/batch_config.yaml', help="Configuration file")
     parser.add_argument('--workers', type=int, help="Override max worker processes")
+    parser.add_argument(
+        '--profile',
+        choices=['standard', 'low_res'],
+        default='standard',
+        help="Extraction profile to use"
+    )
     args = parser.parse_args()
 
     # Setup directories
@@ -179,7 +193,10 @@ def main():
     logger.info(f"Starting batch processing of {len(pdf_files)} files with {config['max_workers']} workers")
 
     # Process files
-    processor = PDFProcessor(config)
+    processor = PDFProcessor({
+        **config,
+        'profile': args.profile
+    })
     start_time = time.time()
     results = processor.process_batch(pdf_files)
     elapsed = time.time() - start_time
