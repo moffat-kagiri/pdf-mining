@@ -1,193 +1,230 @@
 #!/usr/bin/env python
+"""Large-scale PDF Processing Pipeline for batch text extraction and cleaning.
+This module provides a command-line interface and core functionality for processing
+PDF files in parallel, extracting text content, cleaning it, and saving results.
+Key Features:
+- Parallel PDF processing with configurable number of workers 
+- Directory rotation for organized output storage
+- Detailed logging and reporting
+- YAML configuration support
+- Progress tracking and error handling
+Classes:
+    PDFProcessor: Core PDF batch processing engine with parallel execution support
+Functions:
+    load_config: Load and merge YAML configuration with defaults
+    setup_directories: Create required directory structure
+    main: CLI entry point and orchestration
+Command Line Arguments:
+    --input: Path to input PDF file or directory (required)
+    --config: Path to YAML config file (default: configs/batch_config.yaml) 
+    --workers: Override number of worker processes
+Example Usage:
+    python cli.py --input /path/to/pdfs --workers 4
+Directory Structure:
+    data/
+        raw/
+            batch/  # Input PDFs
+        out/
+            logs/  # Processing logs and reports
+            YYYYMMDD/  # Daily output folders
+"""
 import argparse
 import csv
 import logging
-import re
+import multiprocessing
+import os
 import shutil
 import sys
+import time
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
-# Configure logging to both file and console
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('data/out/logs/processing.log'),
+        logging.FileHandler('data/out/logs/batch_processing.log'),
         logging.StreamHandler()
     ]
 )
 logger = logging.getLogger(__name__)
 
-def ensure_directory_structure():
-    """Create required directories for raw data, outputs, and logs if they don't exist."""
-    Path("data/raw").mkdir(parents=True, exist_ok=True)
-    Path("data/out/txt").mkdir(parents=True, exist_ok=True)
-    Path("data/out/csv").mkdir(parents=True, exist_ok=True)
-    Path("data/out/logs").mkdir(parents=True, exist_ok=True)
-
-class ContentParser:
-    """Handles text parsing and conversion to structured formats."""
-
-    @staticmethod
-    def parse_to_paragraphs(text: str) -> List[List[str]]:
-        """
-        Convert text to paragraph-based CSV rows.
-        - Splits text into paragraphs on empty lines.
-        - If a line contains pipes ('|'), splits into columns.
-        - Returns a list of rows, each row is a list of columns.
-        """
-        paragraphs = []
-        current_paragraph = []
-
-        for line in text.splitlines():
-            stripped = line.strip()
-            if not stripped:  # Empty line indicates paragraph break
-                if current_paragraph:
-                    paragraphs.append([" ".join(current_paragraph)])
-                    current_paragraph = []
-                continue
-
-            # Handle pipe-delimited content as table rows
-            if "|" in stripped:
-                pipe_split = [s.strip() for s in stripped.split("|")]
-                if current_paragraph:
-                    paragraphs.append([" ".join(current_paragraph)])
-                    current_paragraph = []
-                paragraphs.append(pipe_split)
-            else:
-                current_paragraph.append(stripped)
-
-        if current_paragraph:  # Add last paragraph if present
-            paragraphs.append([" ".join(current_paragraph)])
-
-        return paragraphs
+class PDFProcessor:
+    """Core PDF processing engine with parallelization support"""
+    
+    def __init__(self, config: dict):
+        self.config = config
+        self.max_workers = config.get('max_workers', os.cpu_count() - 1 or 1)
+        self.chunk_size = config.get('chunk_size', 10)
+        
+    def process_batch(self, pdf_files: List[Path]) -> dict:
+        """Process multiple PDFs in parallel"""
+        from extraction.text_extraction import TextExtractor
+        from postprocessing.text_cleaner import TextCleaner
+        
+        results = {
+            'processed': 0,
+            'failed': 0,
+            'files': []
+        }
+        
+        def _process_file(pdf_path: Path):
+            try:
+                extractor = TextExtractor(self.config)
+                text = extractor.extract_text(str(pdf_path))
+                if not text:
+                    return None
+                
+                cleaner = TextCleaner(self.config.get('text_cleaning', {}))
+                clean_text = cleaner.clean(text)
+                
+                output_path = self._save_outputs(pdf_path.stem, clean_text)
+                return {
+                    'input': str(pdf_path),
+                    'output': output_path,
+                    'status': 'success'
+                }
+            except Exception as e:
+                logger.error(f"Failed {pdf_path.name}: {str(e)}")
+                return {
+                    'input': str(pdf_path),
+                    'error': str(e),
+                    'status': 'failed'
+                }
+        
+        with multiprocessing.Pool(processes=self.max_workers) as pool:
+            for result in pool.imap_unordered(_process_file, pdf_files, chunksize=self.chunk_size):
+                if result:
+                    results['files'].append(result)
+                    if result['status'] == 'success':
+                        results['processed'] += 1
+                    else:
+                        results['failed'] += 1
+        
+        return results
+    
+    def _save_outputs(self, base_name: str, text: str) -> str:
+        """Save outputs with directory rotation"""
+        # Create dated output directory
+        date_str = time.strftime("%Y%m%d")
+        output_dir = Path(f"data/out/{date_str}")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Save text
+        txt_path = output_dir / f"{base_name}.txt"
+        with open(txt_path, 'w', encoding='utf-8') as f:
+            f.write(text)
+        
+        return str(txt_path)
 
 def load_config(config_path: str = None) -> dict:
-    """
-    Load configuration from YAML file if provided, otherwise use defaults.
-    Returns a dictionary with configuration settings.
-    """
+    """Load configuration with batch processing defaults"""
     default_config = {
+        'max_workers': os.cpu_count() - 1 or 1,
+        'chunk_size': 10,
         'text_extraction': {
             'min_text_length': 50,
-            'poppler_path': None,
-            'dpi': 300
+            'dpi': 300,
+            'poppler_path': None
         },
-        'parsing': {
-            'pipe_as_tab': True,
-            'max_columns': 10
+        'text_cleaning': {
+            'preserve_newlines': True,
+            'fix_bullets': True
         }
     }
-
+    
     if not config_path:
         return default_config
-
+        
     try:
         import yaml
-        config_file = Path(config_path)
-        if not config_file.exists():
-            logger.warning(f"Config file not found: {config_path}")
-            return default_config
-        # Merge loaded config with defaults
-        return {**default_config, **yaml.safe_load(config_file.read_text())}
+        with open(config_path, 'r') as f:
+            return {**default_config, **yaml.safe_load(f)}
     except Exception as e:
-        logger.error(f"Config load error: {str(e)}")
+        logger.error(f"Config error: {str(e)}")
         return default_config
 
-def save_outputs(base_name: str, text: str, config: dict):
-    """
-    Save both the raw extracted text and the structured CSV output.
-    - Writes text to data/out/txt/{base_name}.txt
-    - Writes structured CSV to data/out/csv/{base_name}.csv
-    """
-    # Save raw text output
-    txt_path = f"data/out/txt/{base_name}.txt"
-    with open(txt_path, 'w', encoding='utf-8') as f:
-        f.write(text)
-    logger.info(f"Text saved to {txt_path}")
-
-    # Parse text into structured paragraphs/rows
-    parser = ContentParser()
-    paragraphs = parser.parse_to_paragraphs(text)
-
-    csv_path = f"data/out/csv/{base_name}.csv"
-    with open(csv_path, 'w', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f, delimiter=',')
-
-        # Determine the maximum number of columns for the CSV header
-        max_columns = min(
-            max(len(row) for row in paragraphs),
-            config['parsing']['max_columns']
-        )
-        writer.writerow([f"Column_{i+1}" for i in range(max_columns)])
-
-        # Write each row, padding with empty strings if needed
-        for row in paragraphs:
-            padded_row = row + [''] * (max_columns - len(row))
-            writer.writerow(padded_row)
-
-    logger.info(f"Structured CSV saved to {csv_path}")
-    logger.info(f"Detected {len(paragraphs)} paragraphs/rows")
-
-def process_pdf(input_path: Path, config: dict) -> bool:
-    """
-    Process a single PDF file:
-    - Copies the PDF to the raw data directory if needed.
-    - Extracts text using the TextExtractor.
-    - Saves both text and structured CSV outputs.
-    Returns True on success, False on failure.
-    """
-    try:
-        from extraction.text_extraction import TextExtractor
-
-        # Ensure file is in raw directory for consistency
-        raw_path = Path("data/raw") / input_path.name
-        if not input_path.samefile(raw_path):
-            shutil.copy(input_path, raw_path)
-            input_path = raw_path
-
-        # Extract text content from PDF
-        extractor = TextExtractor(config)
-        text = extractor.extract_text(str(input_path))
-        if not text:
-            raise ValueError("No text extracted")
-
-        # Save outputs (text and CSV)
-        save_outputs(input_path.stem, text, config)
-        return True
-
-    except Exception as e:
-        logger.error(f"Processing failed: {str(e)}")
-        return False
+def setup_directories():
+    """Ensure directory structure exists"""
+    Path("data/raw/batch").mkdir(parents=True, exist_ok=True)
+    Path("data/out/logs").mkdir(parents=True, exist_ok=True)
 
 def main():
-    """
-    Main entry point for the CLI tool.
-    - Ensures required directories exist.
-    - Parses command-line arguments.
-    - Loads configuration.
-    - Processes the input PDF.
-    """
-    ensure_directory_structure()
-
+    setup_directories()
+    
     parser = argparse.ArgumentParser(
-        description="PDF to Text and Structured CSV Converter",
+        description="Large-scale PDF Processing Pipeline",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument('--input', required=True, help="Input PDF file")
-    parser.add_argument('--config', default='configs/ocr.yaml', help="Config file")
+    parser.add_argument(
+        '--input',
+        required=True,
+        help="Input PDF file or directory"
+    )
+    parser.add_argument(
+        '--config',
+        default='configs/batch_config.yaml',
+        help="Configuration file"
+    )
+    parser.add_argument(
+        '--workers',
+        type=int,
+        help="Override max worker processes"
+    )
     args = parser.parse_args()
 
+    # Load configuration
     config = load_config(args.config)
+    if args.workers:
+        config['max_workers'] = args.workers
+    
+    processor = PDFProcessor(config)
     input_path = Path(args.input)
 
-    if not input_path.exists():
-        logger.error(f"Input file not found: {input_path}")
+    # Prepare file list
+    if input_path.is_file():
+        pdf_files = [input_path]
+    else:
+        pdf_files = list(input_path.glob("*.pdf")) + list(input_path.glob("**/*.pdf"))
+    
+    if not pdf_files:
+        logger.error("No PDF files found")
         sys.exit(1)
 
-    success = process_pdf(input_path, config)
-    sys.exit(0 if success else 1)
+    logger.info(f"Starting batch processing of {len(pdf_files)} files with {config['max_workers']} workers")
+
+    # Process batch
+    start_time = time.time()
+    results = processor.process_batch(pdf_files)
+    elapsed = time.time() - start_time
+
+    # Generate report
+    report = (
+        f"\n{'='*40}\n"
+        f"BATCH PROCESSING REPORT\n"
+        f"{'='*40}\n"
+        f"Total files: {len(pdf_files)}\n"
+        f"Processed: {results['processed']}\n"
+        f"Failed: {results['failed']}\n"
+        f"Elapsed time: {elapsed:.2f} seconds\n"
+        f"Files/sec: {len(pdf_files)/elapsed:.2f}\n"
+        f"{'='*40}"
+    )
+    
+    logger.info(report)
+    
+    # Save detailed report
+    report_path = Path(f"data/out/logs/batch_report_{time.strftime('%Y%m%d_%H%M%S')}.txt")
+    with open(report_path, 'w') as f:
+        f.write(report + "\n\n")
+        for file in results['files']:
+            f.write(f"{file['input']} - {file['status']}\n")
+            if file['status'] == 'failed':
+                f.write(f"ERROR: {file['error']}\n")
+    
+    sys.exit(0 if results['failed'] == 0 else 1)
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()  # For Windows executable support
     main()
