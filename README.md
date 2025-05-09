@@ -41,21 +41,29 @@ Legal/Research: Scrape text from articles/contracts into tables.
 
 Archival: Digitize handwritten forms or historical documents.
 
-
 ## First-Time Setup
 
 1. Create directory structure:
 
    ```bash
    mkdir -p data/{raw,out/{txt,csv,logs},temp}
-    ```
+   ```
 
 ## Quick Start
 
+Process a directory:
+
 ```bash
-pip install -r requirements.txt  
-python extract.py --input statement.pdf --output data.xlsx
+python src/cli.py --input data/raw/batch --config configs/batch_config.yaml
 ```
+
+Process with 12 workers:
+
+```bash
+python src/cli.py --input data/raw/batch --workers 12
+```
+
+Process single large file:python src/cli.py --input data/raw/large_report.pdf --workers 4
 
 ## Example Output
 

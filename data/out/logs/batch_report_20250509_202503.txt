@@ -1,0 +1,19 @@
+
+========================================
+BATCH PROCESSING REPORT
+========================================
+Total files: 8
+Processed: 8
+Failed: 0
+Elapsed time: 72.53 seconds
+Files/sec: 0.11
+========================================
+
+data\raw\ollyvian.pdf - success
+data\raw\sample.pdf - success
+data\raw\simple.pdf - success
+data\raw\image.pdf - success
+data\raw\ollyvian.pdf - success
+data\raw\sample.pdf - success
+data\raw\simple.pdf - success
+data\raw\image.pdf - success

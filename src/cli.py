@@ -29,15 +29,12 @@ Directory Structure:
             YYYYMMDD/  # Daily output folders
 """
 import argparse
-import csv
 import logging
 import multiprocessing
 import os
-import shutil
-import sys
 import time
 from pathlib import Path
-from typing import List, Tuple, Optional
+from typing import List, Dict
 
 # Configure logging
 logging.basicConfig(
@@ -50,87 +47,91 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-class PDFProcessor:
-    """Core PDF processing engine with parallelization support"""
+def process_single_file(args: tuple) -> Dict:
+    """Standalone function for processing individual PDF files"""
+    from extraction.text_extraction import TextExtractor
+    from postprocessing.text_cleaner import TextCleaner
     
-    def __init__(self, config: dict):
-        self.config = config
-        self.max_workers = config.get('max_workers', os.cpu_count() - 1 or 1)
-        self.chunk_size = config.get('chunk_size', 10)
-        
-    def process_batch(self, pdf_files: List[Path]) -> dict:
-        """Process multiple PDFs in parallel"""
-        from extraction.text_extraction import TextExtractor
-        from postprocessing.text_cleaner import TextCleaner
-        
-        results = {
-            'processed': 0,
-            'failed': 0,
-            'files': []
-        }
-        
-        def _process_file(pdf_path: Path):
-            try:
-                extractor = TextExtractor(self.config)
-                text = extractor.extract_text(str(pdf_path))
-                if not text:
-                    return None
-                
-                cleaner = TextCleaner(self.config.get('text_cleaning', {}))
-                clean_text = cleaner.clean(text)
-                
-                output_path = self._save_outputs(pdf_path.stem, clean_text)
-                return {
-                    'input': str(pdf_path),
-                    'output': output_path,
-                    'status': 'success'
-                }
-            except Exception as e:
-                logger.error(f"Failed {pdf_path.name}: {str(e)}")
-                return {
-                    'input': str(pdf_path),
-                    'error': str(e),
-                    'status': 'failed'
-                }
-        
-        with multiprocessing.Pool(processes=self.max_workers) as pool:
-            for result in pool.imap_unordered(_process_file, pdf_files, chunksize=self.chunk_size):
-                if result:
-                    results['files'].append(result)
-                    if result['status'] == 'success':
-                        results['processed'] += 1
-                    else:
-                        results['failed'] += 1
-        
-        return results
+    pdf_path_str, config = args
+    pdf_path = Path(pdf_path_str)
     
-    def _save_outputs(self, base_name: str, text: str) -> str:
-        """Save outputs with directory rotation"""
+    try:
+        extractor = TextExtractor(config)
+        text = extractor.extract_text(pdf_path_str)
+        if not text:
+            return {'input': pdf_path_str, 'status': 'failed', 'error': 'No text extracted'}
+        
+        cleaner = TextCleaner(config.get('text_cleaning', {}))
+        clean_text = cleaner.clean(text)
+        
         # Create dated output directory
         date_str = time.strftime("%Y%m%d")
         output_dir = Path(f"data/out/{date_str}")
         output_dir.mkdir(parents=True, exist_ok=True)
         
         # Save text
-        txt_path = output_dir / f"{base_name}.txt"
+        txt_path = output_dir / f"{pdf_path.stem}.txt"
         with open(txt_path, 'w', encoding='utf-8') as f:
-            f.write(text)
+            f.write(clean_text)
+            
+        return {
+            'input': pdf_path_str,
+            'output': str(txt_path),
+            'status': 'success'
+        }
+    except Exception as e:
+        return {
+            'input': pdf_path_str,
+            'status': 'failed',
+            'error': str(e)
+        }
+
+class PDFProcessor:
+    """Handles parallel PDF processing"""
+    
+    def __init__(self, config: dict):
+        self.config = config
+        self.max_workers = min(
+            config.get('max_workers', os.cpu_count() - 1 or 1),
+            61  # Windows limit for multiprocessing
+        )
+        self.chunk_size = config.get('chunk_size', 5)
         
-        return str(txt_path)
+    def process_batch(self, pdf_files: List[Path]) -> Dict:
+        """Process multiple PDFs in parallel"""
+        results = {
+            'processed': 0,
+            'failed': 0,
+            'files': []
+        }
+        
+        # Prepare arguments for workers
+        tasks = [(str(pdf), self.config) for pdf in pdf_files]
+        
+        with multiprocessing.Pool(processes=self.max_workers) as pool:
+            for result in pool.imap_unordered(
+                process_single_file, 
+                tasks,
+                chunksize=self.chunk_size
+            ):
+                results['files'].append(result)
+                if result['status'] == 'success':
+                    results['processed'] += 1
+                else:
+                    logger.error(f"Failed {Path(result['input']).name}: {result.get('error', 'Unknown error')}")
+                    results['failed'] += 1
+        
+        return results
 
 def load_config(config_path: str = None) -> dict:
-    """Load configuration with batch processing defaults"""
+    """Load configuration with defaults"""
     default_config = {
         'max_workers': os.cpu_count() - 1 or 1,
-        'chunk_size': 10,
+        'chunk_size': 5,
         'text_extraction': {
             'min_text_length': 50,
             'dpi': 300,
             'poppler_path': None
-        },
-        'text_cleaning': {
-            'preserve_newlines': True,
-            'fix_bullets': True
         }
     }
     
@@ -145,44 +146,27 @@ def load_config(config_path: str = None) -> dict:
         logger.error(f"Config error: {str(e)}")
         return default_config
 
-def setup_directories():
-    """Ensure directory structure exists"""
-    Path("data/raw/batch").mkdir(parents=True, exist_ok=True)
-    Path("data/out/logs").mkdir(parents=True, exist_ok=True)
-
 def main():
-    setup_directories()
-    
     parser = argparse.ArgumentParser(
         description="Large-scale PDF Processing Pipeline",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument(
-        '--input',
-        required=True,
-        help="Input PDF file or directory"
-    )
-    parser.add_argument(
-        '--config',
-        default='configs/batch_config.yaml',
-        help="Configuration file"
-    )
-    parser.add_argument(
-        '--workers',
-        type=int,
-        help="Override max worker processes"
-    )
+    parser.add_argument('--input', required=True, help="Input PDF file or directory")
+    parser.add_argument('--config', default='configs/batch_config.yaml', help="Configuration file")
+    parser.add_argument('--workers', type=int, help="Override max worker processes")
     args = parser.parse_args()
 
-    # Load configuration
+    # Setup directories
+    Path("data/raw").mkdir(parents=True, exist_ok=True)
+    Path("data/out/logs").mkdir(parents=True, exist_ok=True)
+
+    # Load config
     config = load_config(args.config)
     if args.workers:
         config['max_workers'] = args.workers
     
-    processor = PDFProcessor(config)
+    # Get input files
     input_path = Path(args.input)
-
-    # Prepare file list
     if input_path.is_file():
         pdf_files = [input_path]
     else:
@@ -194,7 +178,8 @@ def main():
 
     logger.info(f"Starting batch processing of {len(pdf_files)} files with {config['max_workers']} workers")
 
-    # Process batch
+    # Process files
+    processor = PDFProcessor(config)
     start_time = time.time()
     results = processor.process_batch(pdf_files)
     elapsed = time.time() - start_time
@@ -226,5 +211,6 @@ def main():
     sys.exit(0 if results['failed'] == 0 else 1)
 
 if __name__ == "__main__":
-    multiprocessing.freeze_support()  # For Windows executable support
+    multiprocessing.freeze_support()  # Required for Windows
+    import sys
     main()

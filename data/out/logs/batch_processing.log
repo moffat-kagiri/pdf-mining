@@ -1,0 +1,24 @@
+2025-05-09 20:12:27,833 - INFO - Starting batch processing of 8 files with 8 workers
+2025-05-09 20:23:50,480 - INFO - Starting batch processing of 8 files with 8 workers
+2025-05-09 20:24:09,402 - WARNING - Direct extraction failed, attempting OCR fallback
+2025-05-09 20:24:09,402 - WARNING - Direct extraction failed, attempting OCR fallback
+2025-05-09 20:24:24,058 - ERROR - Layout analysis failed: enhance_image() missing 1 required positional argument: 'config'
+2025-05-09 20:24:26,435 - ERROR - Layout analysis failed: enhance_image() missing 1 required positional argument: 'config'
+2025-05-09 20:24:29,701 - WARNING - Direct extraction failed, attempting OCR fallback
+2025-05-09 20:24:35,004 - INFO - Successfully extracted text directly from PDF
+2025-05-09 20:24:35,144 - INFO - Successfully extracted text directly from PDF
+2025-05-09 20:24:41,614 - ERROR - Layout analysis failed: enhance_image() missing 1 required positional argument: 'config'
+2025-05-09 20:24:48,497 - INFO - Successfully extracted text directly from PDF
+2025-05-09 20:24:48,515 - INFO - Successfully extracted text directly from PDF
+2025-05-09 20:24:48,522 - WARNING - Direct extraction failed, attempting OCR fallback
+2025-05-09 20:24:58,078 - ERROR - Layout analysis failed: enhance_image() missing 1 required positional argument: 'config'
+2025-05-09 20:25:03,012 - INFO - 
+========================================
+BATCH PROCESSING REPORT
+========================================
+Total files: 8
+Processed: 8
+Failed: 0
+Elapsed time: 72.53 seconds
+Files/sec: 0.11
+========================================

@@ -1,0 +1,25 @@
+# Parallel processing
+max_workers: 8                 # Optimal for most 8-core systems
+chunk_size: 5                  # Files per worker batch
+
+# Text extraction
+text_extraction:
+  min_text_length: 100
+  dpi: 300
+  poppler_path: "C:/Program Files/poppler/Library/bin"
+
+# Text cleaning
+text_cleaning:
+  preserve_newlines: true
+  fix_bullets: true
+  normalize_dates: true
+
+# Resource management
+memory:
+  max_pdf_size_mb: 50          # Reject files larger than this
+  image_cache_size: 1024        # MB of RAM for image caching
+
+resource_limits:
+  max_file_size_mb: 50       # Skip files larger than this
+  max_memory_per_worker: 512 # MB
+  timeout_per_file: 300      # Seconds
