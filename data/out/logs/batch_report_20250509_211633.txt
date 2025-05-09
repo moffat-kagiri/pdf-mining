@@ -1,0 +1,13 @@
+
+========================================
+BATCH PROCESSING REPORT
+========================================
+Total files: 1
+Processed: 0
+Failed: 1
+Elapsed time: 21.58 seconds
+Files/sec: 0.05
+========================================
+
+data\raw\ollyvian.pdf - failed
+ERROR: No text extracted

@@ -24,3 +24,16 @@ Files/sec: 0.11
 ========================================
 2025-05-09 20:58:41,062 - INFO - Starting batch processing of 1 files with 8 workers
 2025-05-09 21:09:51,545 - INFO - Starting batch processing of 1 files with 8 workers
+2025-05-09 21:16:11,653 - INFO - Starting batch processing of 1 files with 8 workers
+2025-05-09 21:16:33,164 - ERROR - OCR pipeline failed: OCR failed: No closing quotation
+2025-05-09 21:16:33,169 - ERROR - Failed ollyvian.pdf: No text extracted
+2025-05-09 21:16:33,238 - INFO - 
+========================================
+BATCH PROCESSING REPORT
+========================================
+Total files: 1
+Processed: 0
+Failed: 1
+Elapsed time: 21.58 seconds
+Files/sec: 0.05
+========================================
