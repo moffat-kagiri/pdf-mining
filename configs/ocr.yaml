@@ -26,3 +26,7 @@ table_detection:
   min_rows: 3             # Minimum rows to consider as table
   allowed_delimiters: ["|", ",", "\t"]
   max_column_variance: 2  # Allow ±2 columns difference
+
+parsing:
+  pipe_as_tab: true  # Whether to treat | as column delimiter
+  max_columns: 10    # Maximum columns in CSV output

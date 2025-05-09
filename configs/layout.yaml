@@ -3,3 +3,7 @@ model:
   type: "detectron2"
   config_path: "lp://PubLayNet/faster_rcnn_R_50_FPN_3x/config"
   threshold: 0.7  # Confidence threshold for layout detection
+
+parsing:
+  pipe_as_tab: true  # Whether to treat | as column delimiter
+  max_columns: 10    # Maximum columns in CSV output
