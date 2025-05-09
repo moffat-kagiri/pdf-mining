@@ -1,6 +1,8 @@
 # Core PDF Processing
 pymupdf==1.23.25  # Lightweight PDF text/tables
+pymupdf>=1.18.0
 pdf2image==1.17.0  # Scanned PDFs
+pdf2image>=1.14.0
 #poppler-utils==0.68.0  # Required for pdf2image (will use chocolatey install)
 
 # Layout Analysis (Donut replaces Detectron2)
@@ -9,16 +11,19 @@ transformers==4.41.2  # For Donut
 
 # OCR
 pytesseract==0.3.10
+pytesseract>=0.3.8
 easyocr==1.7.1  # Fallback
+easyocr>=1.4.1
 #tesseract-ocr  # Windows executable (installed via chocolatey)
 
 # Image Processing
 opencv-python-headless==4.9.0.80  # Lighter than full OpenCV
+opencv-python>=4.5.0
 Pillow==10.3.0  # Image handling
-pdf2image==1.17.0  # For scanned PDFs
 
 # Utilities
 numpy==1.26.4  # Latest stable before v2
+numpy>=1.21.0
 pandas  # Data structuring
 tqdm==4.66.2  # Progress bars
 python-dotenv==1.0.1  # Path management

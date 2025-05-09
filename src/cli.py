@@ -34,7 +34,17 @@ import multiprocessing
 import os
 import time
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Tuple
+import sys
+
+
+# Required for Windows multiprocessing
+if __name__ == '__main__':
+    multiprocessing.freeze_support()
+    
+    # Ensure workers can find the project root
+    project_root = Path(__file__).parent.parent
+    sys.path.insert(0, str(project_root))
 
 # Configure logging
 logging.basicConfig(
@@ -49,47 +59,47 @@ logger = logging.getLogger(__name__)
 
 from typing import List, Dict, Tuple  # Add this at the top
 
-def process_single_file(args: Tuple[str, dict]) -> Dict:
+def process_single_file(args: tuple) -> dict:
     """Standalone function for processing individual PDF files"""
     import sys
     from pathlib import Path
     
-    # Add parent directory to path for worker processes
-    sys.path.append(str(Path(__file__).parent.parent))
-    
-    from extraction.text_extraction import TextExtractor
-    from postprocessing.text_cleaner import TextCleaner
-    
-    pdf_path_str, config = args
-    pdf_path = Path(pdf_path_str)
+    # Add the src directory to Python path
+    project_root = Path(__file__).parent.parent
+    sys.path.insert(0, str(project_root))
     
     try:
+        from extraction.text_extraction import TextExtractor
+        from postprocessing.text_cleaner import TextCleaner
+        
+        pdf_path_str, config = args
+        pdf_path = Path(pdf_path_str)
+        
         extractor = TextExtractor(config)
-        text = extractor.extract_text(pdf_path_str)
+        text = extractor.extract_text(str(pdf_path))
         if not text:
-            return {'input': pdf_path_str, 'status': 'failed', 'error': 'No text extracted'}
+            return {'input': str(pdf_path), 'status': 'failed', 'error': 'No text extracted'}
         
         cleaner = TextCleaner(config.get('text_cleaning', {}))
         clean_text = cleaner.clean(text)
         
-        # Create dated output directory
+        # Save output
         date_str = time.strftime("%Y%m%d")
         output_dir = Path(f"data/out/{date_str}")
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        # Save text
         txt_path = output_dir / f"{pdf_path.stem}.txt"
         with open(txt_path, 'w', encoding='utf-8') as f:
             f.write(clean_text)
             
         return {
-            'input': pdf_path_str,
+            'input': str(pdf_path),
             'output': str(txt_path),
             'status': 'success'
         }
     except Exception as e:
         return {
-            'input': pdf_path_str,
+            'input': str(pdf_path),
             'status': 'failed',
             'error': str(e)
         }
