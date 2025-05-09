@@ -37,3 +37,14 @@ Failed: 1
 Elapsed time: 21.58 seconds
 Files/sec: 0.05
 ========================================
+2025-05-09 21:19:03,068 - INFO - Starting batch processing of 1 files with 8 workers
+2025-05-09 21:19:43,246 - INFO - 
+========================================
+BATCH PROCESSING REPORT
+========================================
+Total files: 1
+Processed: 1
+Failed: 0
+Elapsed time: 40.18 seconds
+Files/sec: 0.02
+========================================

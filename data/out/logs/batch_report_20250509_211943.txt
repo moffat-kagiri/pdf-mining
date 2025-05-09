@@ -1,0 +1,12 @@
+
+========================================
+BATCH PROCESSING REPORT
+========================================
+Total files: 1
+Processed: 1
+Failed: 0
+Elapsed time: 40.18 seconds
+Files/sec: 0.02
+========================================
+
+data\raw\ollyvian.pdf - success
