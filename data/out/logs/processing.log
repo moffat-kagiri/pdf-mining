@@ -50,3 +50,8 @@
 2025-05-09 19:21:14,842 - INFO - Text saved to data/out/txt/image.txt
 2025-05-09 19:21:14,851 - INFO - Structured CSV saved to data/out/csv/image.csv
 2025-05-09 19:21:14,851 - INFO - Detected 9 paragraphs/rows
+2025-05-09 19:29:23,434 - WARNING - Direct extraction failed, attempting OCR fallback
+2025-05-09 19:29:39,082 - ERROR - Layout analysis failed: enhance_image() missing 1 required positional argument: 'config'
+2025-05-09 19:29:48,172 - INFO - Text saved to data/out/txt/image.txt
+2025-05-09 19:29:48,177 - INFO - Structured CSV saved to data/out/csv/image.csv
+2025-05-09 19:29:48,177 - INFO - Detected 9 paragraphs/rows

@@ -40,15 +40,20 @@ class TextCleaner:
 
     def clean_ocr_text(text: str) -> str:
         """Fix common OCR artifacts"""
-        # Replace OCR bullet artifacts
-        text = text.replace('e ', '• ')
-        text = text.replace('© ', '• ')
+        # Email fixes
+        text = re.sub(r'(\w+)@(\w+)-com', r'\1@\2.com', text)
         
-        # Fix hyphen/dash inconsistencies
-        text = re.sub(r'(\w)\s*[-—]\s*(\w)', r'\1-\2', text)
+        # Name corrections
+        text = text.replace("Neugi", "Ngugi")
         
-        return text
-
+        # Bullet point standardization
+        text = re.sub(r'[oO0]\s', '• ', text)
+        
+        # Date format normalization
+        text = re.sub(r'(\d{4})\s*—\s*(\w+)', r'\1-\2', text)
+        
+        # Remove isolated characters
+        return re.sub(r'\s\w\s', ' ', text)
     def process_pymupdf_output(layout: Dict[str, Any]) -> List[Dict[str, str]]:
         """Process text blocks from PyMuPDF layout."""
         results = []
